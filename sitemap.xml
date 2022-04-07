@@ -2,12 +2,19 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>http://nolanhemmett.github.io/</loc>
+    <lastmod>2022-04-07T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>http://nolanhemmett.github.io/post/</loc>
+    <lastmod>2022-04-07T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>http://nolanhemmett.github.io/2022/04/07/s-s-lazio-is-one-of-the-best-clubs-in-european-football/</loc>
+    <lastmod>2022-04-07T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>http://nolanhemmett.github.io/about/</loc>
     <lastmod>2022-03-29T00:00:00+00:00</lastmod>
   </url><url>
     <loc>http://nolanhemmett.github.io/categories/</loc>
-  </url><url>
-    <loc>http://nolanhemmett.github.io/</loc>
   </url><url>
     <loc>http://nolanhemmett.github.io/tags/</loc>
   </url>
