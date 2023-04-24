@@ -62,7 +62,7 @@
 
   <article class="article">
     
-    <span class="article-duration">15 min read</span>
+    <span class="article-duration">14 min read</span>
     
 
     <h1 class="article-title">I Tried To Use Machine Learning To Predict The March Madness Tournament And It Sort Of Failed.</h1>
@@ -261,16 +261,16 @@ trainpredict</code></pre>
 <pre><code>## # A tibble: 63,800 × 17
 ##    .pred_class  game_id game_date  team_short_display_n…¹ opponent_short_displ…²
 ##    &lt;fct&gt;          &lt;int&gt; &lt;date&gt;     &lt;chr&gt;                  &lt;chr&gt;                 
-##  1 L             4.01e8 2022-02-26 NC State               North Carolina        
-##  2 W             4.01e8 2018-12-05 UNC Wilmington         North Carolina        
-##  3 W             4.01e8 2023-02-27 N Colorado             Idaho St              
-##  4 W             4.01e8 2021-01-02 Furman                 Mercer                
-##  5 L             4.01e8 2018-02-11 Memphis                UCF                   
-##  6 W             4.01e8 2015-01-22 Sacred Heart           Fair Dickinson        
-##  7 W             4.01e8 2023-01-28 Louisiana Tech         UTSA                  
-##  8 L             4.01e8 2017-01-12 Ohio State             Wisconsin             
-##  9 L             4.01e8 2020-03-11 Old Dominion           FAU                   
-## 10 L             4.01e8 2021-02-26 South Alabama          Georgia St            
+##  1 W             4.01e8 2015-01-02 USC                    Utah                  
+##  2 W             4.01e8 2017-12-20 UTSA                   Nebraska              
+##  3 W             4.01e8 2016-12-20 Nebraska               Southern              
+##  4 L             4.01e8 2023-01-26 Jacksonville           North Alabama         
+##  5 W             4.01e8 2018-12-18 Creighton              Oklahoma              
+##  6 L             4.01e8 2017-01-14 FGCU                   Lipscomb              
+##  7 L             4.01e8 2017-01-02 Northeastern           Drexel                
+##  8 L             4.01e8 2022-02-12 California             Oregon                
+##  9 W             4.01e8 2020-02-22 Louisville             North Carolina        
+## 10 L             4.01e8 2023-02-16 UL Monroe              Louisiana             
 ## # ℹ 63,790 more rows
 ## # ℹ abbreviated names: ¹​team_short_display_name, ²​opponent_short_display_name
 ## # ℹ 12 more variables: season &lt;int&gt;, team_rolling_ppp &lt;dbl&gt;,
@@ -289,7 +289,7 @@ metrics(lightgbmtrainpredict, team_result, .pred_class...1)</code></pre>
 ##   .metric  .estimator .estimate
 ##   &lt;chr&gt;    &lt;chr&gt;          &lt;dbl&gt;
 ## 1 accuracy binary         0.649
-## 2 kap      binary         0.299</code></pre>
+## 2 kap      binary         0.298</code></pre>
 <p>The game recipe is used to create the workflow and the fit which makes modeling a lot easier.</p>
 <p>Now that I have my model, its time to give it new information. I needed to delag the games and feed my model the games from the future to give me a prediction.</p>
 <pre class="r"><code>rollingteamstats &lt;- gameswithpossession %&gt;% 
@@ -367,19 +367,6 @@ levels(gameswithsides$team_result)</code></pre>
     team_result
     ) %&gt;% na.omit()</code></pre>
 <p>Now, my model is ready to go. It’s time to predict some basketball games.</p>
-<pre class="r"><code>southround4games &lt;- tibble(
-  team_short_display_name=&quot;Charleston&quot;,
-  opponent_short_display_name=&quot;NC State&quot;
-)
-southround4games &lt;- modelgames %&gt;% group_by(team_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023)  %&gt;% select(-team_result, -starts_with(&quot;opponent&quot;)) %&gt;% right_join(southround4games)</code></pre>
-<pre><code>## Joining with `by = join_by(team_short_display_name)`</code></pre>
-<pre class="r"><code>southround4games &lt;- modelgames %&gt;% group_by(opponent_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023) %&gt;% ungroup() %&gt;% select(-team_result, -starts_with(&quot;team&quot;), -game_id, -game_date, -season) %&gt;% right_join(southround4games) </code></pre>
-<pre><code>## Joining with `by = join_by(opponent_short_display_name)`</code></pre>
-<pre class="r"><code>southround4 &lt;- lightgbm_fit %&gt;% predict(new_data = southround4games) %&gt;%
-  bind_cols(southround4games) %&gt;% select(.pred_class, team_short_display_name, opponent_short_display_name, everything())
-
-southround4 &lt;- lightgbm_fit %&gt;% predict(new_data = southround4games, type=&quot;prob&quot;) %&gt;%
-  bind_cols(southround4) %&gt;% select(.pred_class, .pred_W, .pred_L, team_short_display_name, opponent_short_display_name, everything())</code></pre>
 <pre class="r"><code>eastround1games &lt;- tibble(
   team_short_display_name=&quot;Purdue&quot;,
   opponent_short_display_name=&quot;Fair Dickinson&quot;
@@ -419,14 +406,14 @@ eastround1</code></pre>
 <pre><code>## # A tibble: 8 × 18
 ##   .pred_class .pred_W .pred_L team_short_display_name opponent_short_display_n…¹
 ##   &lt;fct&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;                     
-## 1 W             0.549   0.451 Tennessee               Louisiana                 
-## 2 W             0.512   0.488 Duke                    Oral Roberts              
-## 3 W             0.533   0.467 Purdue                  Fair Dickinson            
-## 4 L             0.417   0.583 Kansas State            Montana St                
-## 5 W             0.573   0.427 Michigan St             USC                       
-## 6 W             0.623   0.377 Kentucky                Providence                
-## 7 W             0.507   0.493 Memphis                 FAU                       
-## 8 L             0.333   0.667 Marquette               Vermont                   
+## 1 W             0.530   0.470 Tennessee               Louisiana                 
+## 2 L             0.451   0.549 Duke                    Oral Roberts              
+## 3 L             0.456   0.544 Purdue                  Fair Dickinson            
+## 4 L             0.433   0.567 Kansas State            Montana St                
+## 5 W             0.585   0.415 Michigan St             USC                       
+## 6 W             0.591   0.409 Kentucky                Providence                
+## 7 L             0.464   0.536 Memphis                 FAU                       
+## 8 L             0.405   0.595 Marquette               Vermont                   
 ## # ℹ abbreviated name: ¹​opponent_short_display_name
 ## # ℹ 13 more variables: opponent_rolling_ppp &lt;dbl&gt;,
 ## #   opponent_rolling_total_rebounds &lt;dbl&gt;,
@@ -443,23 +430,23 @@ eastround1</code></pre>
                          color = &quot;grey&quot;, weight = px(1)),
     locations = cells_column_labels(everything())
   )</code></pre>
-<div id="kkcuhrogit" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#kkcuhrogit table {
+<div id="omkhtyfcrm" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#omkhtyfcrm table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#kkcuhrogit thead, #kkcuhrogit tbody, #kkcuhrogit tfoot, #kkcuhrogit tr, #kkcuhrogit td, #kkcuhrogit th {
+#omkhtyfcrm thead, #omkhtyfcrm tbody, #omkhtyfcrm tfoot, #omkhtyfcrm tr, #omkhtyfcrm td, #omkhtyfcrm th {
   border-style: none;
 }
 
-#kkcuhrogit p {
+#omkhtyfcrm p {
   margin: 0;
   padding: 0;
 }
 
-#kkcuhrogit .gt_table {
+#omkhtyfcrm .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -485,12 +472,12 @@ eastround1</code></pre>
   border-left-color: #D3D3D3;
 }
 
-#kkcuhrogit .gt_caption {
+#omkhtyfcrm .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#kkcuhrogit .gt_title {
+#omkhtyfcrm .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -502,7 +489,7 @@ eastround1</code></pre>
   border-bottom-width: 0;
 }
 
-#kkcuhrogit .gt_subtitle {
+#omkhtyfcrm .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -514,7 +501,7 @@ eastround1</code></pre>
   border-top-width: 0;
 }
 
-#kkcuhrogit .gt_heading {
+#omkhtyfcrm .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -526,13 +513,13 @@ eastround1</code></pre>
   border-right-color: #D3D3D3;
 }
 
-#kkcuhrogit .gt_bottom_border {
+#omkhtyfcrm .gt_bottom_border {
   border-bottom-style: none;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#kkcuhrogit .gt_col_headings {
+#omkhtyfcrm .gt_col_headings {
   border-top-style: none;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -547,7 +534,7 @@ eastround1</code></pre>
   border-right-color: #D3D3D3;
 }
 
-#kkcuhrogit .gt_col_heading {
+#omkhtyfcrm .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -567,7 +554,7 @@ eastround1</code></pre>
   overflow-x: hidden;
 }
 
-#kkcuhrogit .gt_column_spanner_outer {
+#omkhtyfcrm .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -579,15 +566,15 @@ eastround1</code></pre>
   padding-right: 4px;
 }
 
-#kkcuhrogit .gt_column_spanner_outer:first-child {
+#omkhtyfcrm .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#kkcuhrogit .gt_column_spanner_outer:last-child {
+#omkhtyfcrm .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#kkcuhrogit .gt_column_spanner {
+#omkhtyfcrm .gt_column_spanner {
   border-bottom-style: none;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -599,11 +586,11 @@ eastround1</code></pre>
   width: 100%;
 }
 
-#kkcuhrogit .gt_spanner_row {
+#omkhtyfcrm .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#kkcuhrogit .gt_group_heading {
+#omkhtyfcrm .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -629,7 +616,7 @@ eastround1</code></pre>
   text-align: left;
 }
 
-#kkcuhrogit .gt_empty_group_heading {
+#omkhtyfcrm .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -644,15 +631,15 @@ eastround1</code></pre>
   vertical-align: middle;
 }
 
-#kkcuhrogit .gt_from_md > :first-child {
+#omkhtyfcrm .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#kkcuhrogit .gt_from_md > :last-child {
+#omkhtyfcrm .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#kkcuhrogit .gt_row {
+#omkhtyfcrm .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -671,7 +658,7 @@ eastround1</code></pre>
   overflow-x: hidden;
 }
 
-#kkcuhrogit .gt_stub {
+#omkhtyfcrm .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -684,7 +671,7 @@ eastround1</code></pre>
   padding-right: 5px;
 }
 
-#kkcuhrogit .gt_stub_row_group {
+#omkhtyfcrm .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -698,15 +685,15 @@ eastround1</code></pre>
   vertical-align: top;
 }
 
-#kkcuhrogit .gt_row_group_first td {
+#omkhtyfcrm .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#kkcuhrogit .gt_row_group_first th {
+#omkhtyfcrm .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#kkcuhrogit .gt_summary_row {
+#omkhtyfcrm .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -716,16 +703,16 @@ eastround1</code></pre>
   padding-right: 5px;
 }
 
-#kkcuhrogit .gt_first_summary_row {
+#omkhtyfcrm .gt_first_summary_row {
   border-top-style: none;
   border-top-color: #D3D3D3;
 }
 
-#kkcuhrogit .gt_first_summary_row.thick {
+#omkhtyfcrm .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#kkcuhrogit .gt_last_summary_row {
+#omkhtyfcrm .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -735,7 +722,7 @@ eastround1</code></pre>
   border-bottom-color: #D3D3D3;
 }
 
-#kkcuhrogit .gt_grand_summary_row {
+#omkhtyfcrm .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -745,7 +732,7 @@ eastround1</code></pre>
   padding-right: 5px;
 }
 
-#kkcuhrogit .gt_first_grand_summary_row {
+#omkhtyfcrm .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -755,7 +742,7 @@ eastround1</code></pre>
   border-top-color: #D3D3D3;
 }
 
-#kkcuhrogit .gt_last_grand_summary_row_top {
+#omkhtyfcrm .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -765,11 +752,11 @@ eastround1</code></pre>
   border-bottom-color: #D3D3D3;
 }
 
-#kkcuhrogit .gt_striped {
+#omkhtyfcrm .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#kkcuhrogit .gt_table_body {
+#omkhtyfcrm .gt_table_body {
   border-top-style: none;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -778,7 +765,7 @@ eastround1</code></pre>
   border-bottom-color: #D3D3D3;
 }
 
-#kkcuhrogit .gt_footnotes {
+#omkhtyfcrm .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -792,7 +779,7 @@ eastround1</code></pre>
   border-right-color: #D3D3D3;
 }
 
-#kkcuhrogit .gt_footnote {
+#omkhtyfcrm .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -801,7 +788,7 @@ eastround1</code></pre>
   padding-right: 5px;
 }
 
-#kkcuhrogit .gt_sourcenotes {
+#omkhtyfcrm .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -815,7 +802,7 @@ eastround1</code></pre>
   border-right-color: #D3D3D3;
 }
 
-#kkcuhrogit .gt_sourcenote {
+#omkhtyfcrm .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -823,63 +810,63 @@ eastround1</code></pre>
   padding-right: 5px;
 }
 
-#kkcuhrogit .gt_left {
+#omkhtyfcrm .gt_left {
   text-align: left;
 }
 
-#kkcuhrogit .gt_center {
+#omkhtyfcrm .gt_center {
   text-align: center;
 }
 
-#kkcuhrogit .gt_right {
+#omkhtyfcrm .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#kkcuhrogit .gt_font_normal {
+#omkhtyfcrm .gt_font_normal {
   font-weight: normal;
 }
 
-#kkcuhrogit .gt_font_bold {
+#omkhtyfcrm .gt_font_bold {
   font-weight: bold;
 }
 
-#kkcuhrogit .gt_font_italic {
+#omkhtyfcrm .gt_font_italic {
   font-style: italic;
 }
 
-#kkcuhrogit .gt_super {
+#omkhtyfcrm .gt_super {
   font-size: 65%;
 }
 
-#kkcuhrogit .gt_footnote_marks {
+#omkhtyfcrm .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#kkcuhrogit .gt_asterisk {
+#omkhtyfcrm .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#kkcuhrogit .gt_indent_1 {
+#omkhtyfcrm .gt_indent_1 {
   text-indent: 5px;
 }
 
-#kkcuhrogit .gt_indent_2 {
+#omkhtyfcrm .gt_indent_2 {
   text-indent: 10px;
 }
 
-#kkcuhrogit .gt_indent_3 {
+#omkhtyfcrm .gt_indent_3 {
   text-indent: 15px;
 }
 
-#kkcuhrogit .gt_indent_4 {
+#omkhtyfcrm .gt_indent_4 {
   text-indent: 20px;
 }
 
-#kkcuhrogit .gt_indent_5 {
+#omkhtyfcrm .gt_indent_5 {
   text-indent: 25px;
 }
 </style>
@@ -897,57 +884,41 @@ eastround1</code></pre>
     <tr><td headers="team_short_display_name" class="gt_row gt_left">Tennessee</td>
 <td headers=".pred_class" class="gt_row gt_center">W</td>
 <td headers="opponent_short_display_name" class="gt_row gt_left">Louisiana</td>
-<td headers=".pred_W" class="gt_row gt_right">0.5488660</td></tr>
+<td headers=".pred_W" class="gt_row gt_right">0.5301457</td></tr>
     <tr><td headers="team_short_display_name" class="gt_row gt_left gt_striped">Duke</td>
-<td headers=".pred_class" class="gt_row gt_center gt_striped">W</td>
+<td headers=".pred_class" class="gt_row gt_center gt_striped">L</td>
 <td headers="opponent_short_display_name" class="gt_row gt_left gt_striped">Oral Roberts</td>
-<td headers=".pred_W" class="gt_row gt_right gt_striped">0.5119884</td></tr>
+<td headers=".pred_W" class="gt_row gt_right gt_striped">0.4506847</td></tr>
     <tr><td headers="team_short_display_name" class="gt_row gt_left">Purdue</td>
-<td headers=".pred_class" class="gt_row gt_center">W</td>
+<td headers=".pred_class" class="gt_row gt_center">L</td>
 <td headers="opponent_short_display_name" class="gt_row gt_left">Fair Dickinson</td>
-<td headers=".pred_W" class="gt_row gt_right">0.5333347</td></tr>
+<td headers=".pred_W" class="gt_row gt_right">0.4557129</td></tr>
     <tr><td headers="team_short_display_name" class="gt_row gt_left gt_striped">Kansas State</td>
 <td headers=".pred_class" class="gt_row gt_center gt_striped">L</td>
 <td headers="opponent_short_display_name" class="gt_row gt_left gt_striped">Montana St</td>
-<td headers=".pred_W" class="gt_row gt_right gt_striped">0.4171749</td></tr>
+<td headers=".pred_W" class="gt_row gt_right gt_striped">0.4334593</td></tr>
     <tr><td headers="team_short_display_name" class="gt_row gt_left">Michigan St</td>
 <td headers=".pred_class" class="gt_row gt_center">W</td>
 <td headers="opponent_short_display_name" class="gt_row gt_left">USC</td>
-<td headers=".pred_W" class="gt_row gt_right">0.5734405</td></tr>
+<td headers=".pred_W" class="gt_row gt_right">0.5851931</td></tr>
     <tr><td headers="team_short_display_name" class="gt_row gt_left gt_striped">Kentucky</td>
 <td headers=".pred_class" class="gt_row gt_center gt_striped">W</td>
 <td headers="opponent_short_display_name" class="gt_row gt_left gt_striped">Providence</td>
-<td headers=".pred_W" class="gt_row gt_right gt_striped">0.6227279</td></tr>
+<td headers=".pred_W" class="gt_row gt_right gt_striped">0.5908855</td></tr>
     <tr><td headers="team_short_display_name" class="gt_row gt_left">Memphis</td>
-<td headers=".pred_class" class="gt_row gt_center">W</td>
+<td headers=".pred_class" class="gt_row gt_center">L</td>
 <td headers="opponent_short_display_name" class="gt_row gt_left">FAU</td>
-<td headers=".pred_W" class="gt_row gt_right">0.5065317</td></tr>
+<td headers=".pred_W" class="gt_row gt_right">0.4636928</td></tr>
     <tr><td headers="team_short_display_name" class="gt_row gt_left gt_striped">Marquette</td>
 <td headers=".pred_class" class="gt_row gt_center gt_striped">L</td>
 <td headers="opponent_short_display_name" class="gt_row gt_left gt_striped">Vermont</td>
-<td headers=".pred_W" class="gt_row gt_right gt_striped">0.3333597</td></tr>
+<td headers=".pred_W" class="gt_row gt_right gt_striped">0.4050852</td></tr>
   </tbody>
   
   
 </table>
 </div>
 <p>This is the rundown of how confident my model is in the respective match ups. I am using the East round 1 games as an example here. You can see that It is giving a percentage of how likely the team on the right is to win over the team on the left.</p>
-<pre class="r"><code>westround3games &lt;- tibble(
-  team_short_display_name=&quot;Kansas&quot;,
-  opponent_short_display_name=&quot;Iona&quot;
-) %&gt;% add_row(
-  team_short_display_name=&quot;Gonzaga&quot;,
-  opponent_short_display_name=&quot;UCLA&quot;
-)
-westround3games &lt;- modelgames %&gt;% group_by(team_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023)  %&gt;% select(-team_result, -starts_with(&quot;opponent&quot;)) %&gt;% right_join(westround3games)</code></pre>
-<pre><code>## Joining with `by = join_by(team_short_display_name)`</code></pre>
-<pre class="r"><code>westround3games &lt;- modelgames %&gt;% group_by(opponent_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023) %&gt;% ungroup() %&gt;% select(-team_result, -starts_with(&quot;team&quot;), -game_id, -game_date, -season) %&gt;% right_join(westround3games) </code></pre>
-<pre><code>## Joining with `by = join_by(opponent_short_display_name)`</code></pre>
-<pre class="r"><code>westround3 &lt;- lightgbm_fit %&gt;% predict(new_data = westround3games) %&gt;%
-  bind_cols(westround3games) %&gt;% select(.pred_class, team_short_display_name, opponent_short_display_name, everything())
-
-westround3 &lt;- lightgbm_fit %&gt;% predict(new_data = westround3games, type=&quot;prob&quot;) %&gt;%
-  bind_cols(westround3) %&gt;% select(.pred_class, .pred_W, .pred_L, team_short_display_name, opponent_short_display_name, everything())</code></pre>
 <p>So after 700 lines of code what do I have to show for it? Well, all things considered, I didn’t do too bad. In the context of my class that is. I got second place in our class competition of whos model scores the most points. My model had FAU going all the way to play Gonzaga in the championship game. This is FAU’s first time in the tournament and that prediction wasn’t far off because they lost to San Diego State in the Final Four. I shed a tear when that buzzer beater went in because if FAU won, not only would I have insane bragging rights that I predicted FAU to go to the championship round, I would also have won my class table. Other than the almost impossible FAU call, my model wasn’t very great. I had Gonzaga winning it all and none of my other final four teams were correct. Heres a screenshot of my bracket:</p>
 <p><img src="images/Screenshot%202023-04-22%20at%208.28.33%20PM.png" />
 <img src="images/Screenshot%202023-04-22%20at%208.29.09%20PM.png" /></p>
