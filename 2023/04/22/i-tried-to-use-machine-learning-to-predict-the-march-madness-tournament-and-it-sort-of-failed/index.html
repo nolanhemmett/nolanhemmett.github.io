@@ -6,8 +6,8 @@
 <meta name="generator" content="Hugo 0.96.0" />
 
 
-<title>i-tried-to-use-machine-learning-to-predict-the-march-madness-tournament-and-it-sort-of-failed - Nolan Hemmett&#39;s GitHub Site</title>
-<meta property="og:title" content="i-tried-to-use-machine-learning-to-predict-the-march-madness-tournament-and-it-sort-of-failed - Nolan Hemmett&#39;s GitHub Site">
+<title>I Tried To Use Machine Learning To Predict The March Madness Tournament And It Sort Of Failed. - Nolan Hemmett&#39;s GitHub Site</title>
+<meta property="og:title" content="I Tried To Use Machine Learning To Predict The March Madness Tournament And It Sort Of Failed. - Nolan Hemmett&#39;s GitHub Site">
 
 
   <link href='http://nolanhemmett.github.io/favicon.ico' rel='icon' type='image/x-icon'/>
@@ -19,6 +19,11 @@
 
 
 
+
+
+
+
+<link href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css' rel='stylesheet' type='text/css' />
 
 
 
@@ -57,10 +62,10 @@
 
   <article class="article">
     
-    <span class="article-duration">0 min read</span>
+    <span class="article-duration">26 min read</span>
     
 
-    <h1 class="article-title">i-tried-to-use-machine-learning-to-predict-the-march-madness-tournament-and-it-sort-of-failed</h1>
+    <h1 class="article-title">I Tried To Use Machine Learning To Predict The March Madness Tournament And It Sort Of Failed.</h1>
 
     
     <span class="article-date">2023-04-22</span>
@@ -70,6 +75,1175 @@
       
 
 
+<p>This is only my second year picking a bracket for the NCAA March Madness Tournament. So, that being said, I don’t know a lot about basketball in general. Especially when it comes to college basketball, I’m practically useless. I like to watch the tournament most years but other than march, basketball isn’t something I will regularly tune into.</p>
+<p>This year was different. I wanted to put together a model that would help me predict basketball games so I could win some glory for myself when those predictions were correct. Along with my other SPMC 460 classmates, we all created models in R studio to see whos model was more correct.</p>
+<p>How did this project go? Could’ve been better. I actually did a bit better than I though in all honesty. I defiantly couldn’t have done better by guessing, because I made another bracket by guessing as my baseline and it didn’t get nearly as many points as my model’s bracket did.</p>
+<p>I am using hoopR for all the data I use. gt for the table and tidymodels for my lightgbm model.</p>
+<p>The data I am using comes from Sports Reference and it is game data and player data from 2015 - 2023. I put filters to games before the tournament to show you what my model looked like before the tournament started.</p>
+<p>For my feature engineering, I focused on a few things:</p>
+<p>Points per possessions. I am pretty sure we all have this one in our models because our professor gave this one to us to start. We calculated an estimation of possessions then we used team_score to estimate the amount of points a team would score per 100 possessions.</p>
+<p>Player values. To calculate player value you need to add up all the good and subtract all the bad. Then you need to group by a game_id to get one squad then summarize to find a median value. I used the median value because it ignores the outliers. Player values was the best thing I added to my model. It increased my accuracy by a good 4%.</p>
+<p>Also, I used lots of rolling parameters in my rollingteamstats block. This includes rebounds, field goal percentage and fouls. I rolled my player values and my points per possessions (ppp) as well. I kinda wish I added a little more metrics to my model to make it a little more accurate. I know some of my classmates had success with defensive and offensive ratings, so that is something I wish I added to my my model as well.</p>
+<pre><code>## [1] &quot;L&quot; &quot;W&quot;</code></pre>
+<pre><code>## [1] &quot;W&quot; &quot;L&quot;</code></pre>
+<p><img src="http://nolanhemmett.github.io/2023/04/22/i-tried-to-use-machine-learning-to-predict-the-march-madness-tournament-and-it-sort-of-failed/index_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p>You can see in this scatterplot that the higher the median player value, the more points your team is going to score. They two are positively correlated. Player value was the biggest contributor to the accuracy of my model.</p>
+<p>Heres where the fun begins, modeling with Tidymodels.</p>
+<p>First thing here is splitting the model into training and testing data. I chose lightgbm as my model. It wasn’t the most accurate of the models, that was support vector machines (svm). But, svm takes forever to run for a tiny bit more of accuracy. I was willing to sacrifice that tiny bit of accuracy for the speed of lightgbm. Lightgbm was the obvious choice as it was fast and I was tinkering with my model a lot and didn’t want to wait forever for svm to run after every change.</p>
+<pre><code>## # A tibble: 16 × 4
+##    variable                        type      role      source  
+##    &lt;chr&gt;                           &lt;list&gt;    &lt;chr&gt;     &lt;chr&gt;   
+##  1 game_id                         &lt;chr [2]&gt; ID        original
+##  2 game_date                       &lt;chr [1]&gt; ID        original
+##  3 team_short_display_name         &lt;chr [3]&gt; ID        original
+##  4 opponent_short_display_name     &lt;chr [3]&gt; ID        original
+##  5 season                          &lt;chr [2]&gt; ID        original
+##  6 team_rolling_ppp                &lt;chr [2]&gt; predictor original
+##  7 opponent_rolling_ppp            &lt;chr [2]&gt; predictor original
+##  8 team_rolling_total_rebounds     &lt;chr [2]&gt; predictor original
+##  9 opponent_rolling_total_rebounds &lt;chr [2]&gt; predictor original
+## 10 team_rolling_field_goal_pct     &lt;chr [2]&gt; predictor original
+## 11 opponent_rolling_field_goal_pct &lt;chr [2]&gt; predictor original
+## 12 team_rolling_fouls              &lt;chr [2]&gt; predictor original
+## 13 opponent_rolling_fouls          &lt;chr [2]&gt; predictor original
+## 14 team_rolling_player_value       &lt;chr [2]&gt; predictor original
+## 15 opponent_rolling_player_value   &lt;chr [2]&gt; predictor original
+## 16 team_result                     &lt;chr [3]&gt; outcome   original</code></pre>
+<p>So, how does my model look? In training, my model is giving a 65% accuracy. Not great, not terrible.</p>
+<pre><code>## # A tibble: 63,800 × 17
+##    .pred_class  game_id game_date  team_short_display_n…¹ opponent_short_displ…²
+##    &lt;fct&gt;          &lt;int&gt; &lt;date&gt;     &lt;chr&gt;                  &lt;chr&gt;                 
+##  1 L             4.01e8 2018-02-20 The Citadel            ETSU                  
+##  2 L             4.01e8 2019-11-26 BYU                    Kansas                
+##  3 L             4.01e8 2015-02-07 Troy                   Appalachian St        
+##  4 L             4.01e8 2017-01-28 Kansas City            Bakersfield           
+##  5 W             4.01e8 2022-02-19 Kennesaw St            Jacksonville          
+##  6 W             4.01e8 2017-01-05 SE Missouri St         Tennessee St          
+##  7 W             4.01e8 2018-11-28 N Illinois             Green Bay             
+##  8 W             4.01e8 2016-02-01 Iona                   Saint Peter&#39;s         
+##  9 L             4.01e8 2022-12-15 Presbyterian           Elon                  
+## 10 W             4.01e8 2022-02-19 Samford                UNC Greensboro        
+## # ℹ 63,790 more rows
+## # ℹ abbreviated names: ¹​team_short_display_name, ²​opponent_short_display_name
+## # ℹ 12 more variables: season &lt;int&gt;, team_rolling_ppp &lt;dbl&gt;,
+## #   opponent_rolling_ppp &lt;dbl&gt;, team_rolling_total_rebounds &lt;dbl&gt;,
+## #   opponent_rolling_total_rebounds &lt;dbl&gt;, team_rolling_field_goal_pct &lt;dbl&gt;,
+## #   opponent_rolling_field_goal_pct &lt;dbl&gt;, team_rolling_fouls &lt;dbl&gt;,
+## #   opponent_rolling_fouls &lt;dbl&gt;, team_rolling_player_value &lt;dbl&gt;, …</code></pre>
+<pre><code>## # A tibble: 2 × 3
+##   .metric  .estimator .estimate
+##   &lt;chr&gt;    &lt;chr&gt;          &lt;dbl&gt;
+## 1 accuracy binary         0.65 
+## 2 kap      binary         0.300</code></pre>
+<p>The game recipe is used to create the workflow and the fit which makes modeling a lot easier.</p>
+<p>Now that I have my model, its time to give it new information. I needed to delag the games and feed my model the games from the future to give me a prediction.</p>
+<pre><code>## [1] &quot;L&quot; &quot;W&quot;</code></pre>
+<pre><code>## [1] &quot;W&quot; &quot;L&quot;</code></pre>
+<p>Now, my model is ready to go. It’s time to predict some basketball games.</p>
+<pre class="r"><code>southround1games &lt;- tibble(
+  team_short_display_name=&quot;Alabama&quot;,
+  opponent_short_display_name=&quot;Texas A&amp;M-CC&quot;
+) %&gt;% add_row(
+  team_short_display_name=&quot;Maryland&quot;,
+  opponent_short_display_name=&quot;West Virginia&quot;
+)%&gt;% add_row(
+  team_short_display_name=&quot;San Diego State&quot;,
+  opponent_short_display_name=&quot;Charleston&quot;
+)%&gt;% add_row(
+  team_short_display_name=&quot;Virginia&quot;,
+  opponent_short_display_name=&quot;Furman&quot;
+)%&gt;% add_row(
+  team_short_display_name=&quot;Creighton&quot;,
+  opponent_short_display_name=&quot;NC State&quot;
+)%&gt;% add_row(
+  team_short_display_name=&quot;Baylor&quot;,
+  opponent_short_display_name=&quot;UCSB&quot;
+)%&gt;% add_row(
+  team_short_display_name=&quot;Missouri&quot;,
+  opponent_short_display_name=&quot;Utah State&quot;
+)%&gt;% add_row(
+  team_short_display_name=&quot;Arizona&quot;,
+  opponent_short_display_name=&quot;Princeton&quot;
+)
+southround1games &lt;- modelgames %&gt;% group_by(team_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023)  %&gt;% select(-team_result, -starts_with(&quot;opponent&quot;)) %&gt;% right_join(southround1games)</code></pre>
+<pre><code>## Joining with `by = join_by(team_short_display_name)`</code></pre>
+<pre class="r"><code>southround1games &lt;- modelgames %&gt;% group_by(opponent_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023) %&gt;% ungroup() %&gt;% select(-team_result, -starts_with(&quot;team&quot;), -game_id, -game_date, -season) %&gt;% right_join(southround1games) </code></pre>
+<pre><code>## Joining with `by = join_by(opponent_short_display_name)`</code></pre>
+<pre class="r"><code>southround1 &lt;- lightgbm_fit %&gt;% predict(new_data = southround1games) %&gt;%
+  bind_cols(southround1games) %&gt;% select(.pred_class, team_short_display_name, opponent_short_display_name, everything())
+
+southround1 &lt;- lightgbm_fit %&gt;% predict(new_data = southround1games, type=&quot;prob&quot;) %&gt;%
+  bind_cols(southround1) %&gt;% select(.pred_class, .pred_W, .pred_L, team_short_display_name, opponent_short_display_name, everything())
+
+southround1</code></pre>
+<pre><code>## # A tibble: 8 × 18
+##   .pred_class .pred_W .pred_L team_short_display_name opponent_short_display_n…¹
+##   &lt;fct&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;                     
+## 1 L             0.396   0.604 Virginia                Furman                    
+## 2 L             0.351   0.649 San Diego State         Charleston                
+## 3 L             0.436   0.564 Alabama                 Texas A&amp;M-CC              
+## 4 W             0.599   0.401 Creighton               NC State                  
+## 5 W             0.521   0.479 Maryland                West Virginia             
+## 6 L             0.380   0.620 Baylor                  UCSB                      
+## 7 W             0.520   0.480 Missouri                Utah State                
+## 8 L             0.441   0.559 Arizona                 Princeton                 
+## # ℹ abbreviated name: ¹​opponent_short_display_name
+## # ℹ 13 more variables: opponent_rolling_ppp &lt;dbl&gt;,
+## #   opponent_rolling_total_rebounds &lt;dbl&gt;,
+## #   opponent_rolling_field_goal_pct &lt;dbl&gt;, opponent_rolling_fouls &lt;dbl&gt;,
+## #   opponent_rolling_player_value &lt;dbl&gt;, game_id &lt;int&gt;, game_date &lt;date&gt;,
+## #   season &lt;int&gt;, team_rolling_ppp &lt;dbl&gt;, team_rolling_total_rebounds &lt;dbl&gt;,
+## #   team_rolling_field_goal_pct &lt;dbl&gt;, team_rolling_fouls &lt;dbl&gt;, …</code></pre>
+<pre class="r"><code>southround2games &lt;- tibble(
+  team_short_display_name=&quot;Maryland&quot;,
+  opponent_short_display_name=&quot;Alabama&quot;
+) %&gt;% add_row(
+  team_short_display_name=&quot;Charleston&quot;,
+  opponent_short_display_name=&quot;Furman&quot;
+)%&gt;% add_row(
+  team_short_display_name=&quot;NC State&quot;,
+  opponent_short_display_name=&quot;Baylor&quot;
+)%&gt;% add_row(
+  team_short_display_name=&quot;Utah State&quot;,
+  opponent_short_display_name=&quot;Arizona&quot;
+)
+southround2games &lt;- modelgames %&gt;% group_by(team_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023)  %&gt;% select(-team_result, -starts_with(&quot;opponent&quot;)) %&gt;% right_join(southround2games)</code></pre>
+<pre><code>## Joining with `by = join_by(team_short_display_name)`</code></pre>
+<pre class="r"><code>southround2games &lt;- modelgames %&gt;% group_by(opponent_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023) %&gt;% ungroup() %&gt;% select(-team_result, -starts_with(&quot;team&quot;), -game_id, -game_date, -season) %&gt;% right_join(southround2games) </code></pre>
+<pre><code>## Joining with `by = join_by(opponent_short_display_name)`</code></pre>
+<pre class="r"><code>southround2 &lt;- lightgbm_fit %&gt;% predict(new_data = southround2games) %&gt;%
+  bind_cols(southround2games) %&gt;% select(.pred_class, team_short_display_name, opponent_short_display_name, everything())
+
+southround2 &lt;- lightgbm_fit %&gt;% predict(new_data = southround2games, type=&quot;prob&quot;) %&gt;%
+  bind_cols(southround2) %&gt;% select(.pred_class, .pred_W, .pred_L, team_short_display_name, opponent_short_display_name, everything())
+
+southround2</code></pre>
+<pre><code>## # A tibble: 4 × 18
+##   .pred_class .pred_W .pred_L team_short_display_name opponent_short_display_n…¹
+##   &lt;fct&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;                     
+## 1 W             0.530   0.470 Charleston              Furman                    
+## 2 W             0.589   0.411 NC State                Baylor                    
+## 3 W             0.516   0.484 Utah State              Arizona                   
+## 4 L             0.456   0.544 Maryland                Alabama                   
+## # ℹ abbreviated name: ¹​opponent_short_display_name
+## # ℹ 13 more variables: opponent_rolling_ppp &lt;dbl&gt;,
+## #   opponent_rolling_total_rebounds &lt;dbl&gt;,
+## #   opponent_rolling_field_goal_pct &lt;dbl&gt;, opponent_rolling_fouls &lt;dbl&gt;,
+## #   opponent_rolling_player_value &lt;dbl&gt;, game_id &lt;int&gt;, game_date &lt;date&gt;,
+## #   season &lt;int&gt;, team_rolling_ppp &lt;dbl&gt;, team_rolling_total_rebounds &lt;dbl&gt;,
+## #   team_rolling_field_goal_pct &lt;dbl&gt;, team_rolling_fouls &lt;dbl&gt;, …</code></pre>
+<pre class="r"><code>southround3games &lt;- tibble(
+  team_short_display_name=&quot;Charleston&quot;,
+  opponent_short_display_name=&quot;Alabama&quot;
+) %&gt;% add_row(
+  team_short_display_name=&quot;NC State&quot;,
+  opponent_short_display_name=&quot;Utah State&quot;
+)
+southround3games &lt;- modelgames %&gt;% group_by(team_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023)  %&gt;% select(-team_result, -starts_with(&quot;opponent&quot;)) %&gt;% right_join(southround3games)</code></pre>
+<pre><code>## Joining with `by = join_by(team_short_display_name)`</code></pre>
+<pre class="r"><code>southround3games &lt;- modelgames %&gt;% group_by(opponent_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023) %&gt;% ungroup() %&gt;% select(-team_result, -starts_with(&quot;team&quot;), -game_id, -game_date, -season) %&gt;% right_join(southround3games) </code></pre>
+<pre><code>## Joining with `by = join_by(opponent_short_display_name)`</code></pre>
+<pre class="r"><code>southround3 &lt;- lightgbm_fit %&gt;% predict(new_data = southround3games) %&gt;%
+  bind_cols(southround3games) %&gt;% select(.pred_class, team_short_display_name, opponent_short_display_name, everything())
+
+southround3 &lt;- lightgbm_fit %&gt;% predict(new_data = southround3games, type=&quot;prob&quot;) %&gt;%
+  bind_cols(southround3) %&gt;% select(.pred_class, .pred_W, .pred_L, team_short_display_name, opponent_short_display_name, everything())
+
+southround3</code></pre>
+<pre><code>## # A tibble: 2 × 18
+##   .pred_class .pred_W .pred_L team_short_display_name opponent_short_display_n…¹
+##   &lt;fct&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;                     
+## 1 L             0.468   0.532 NC State                Utah State                
+## 2 W             0.512   0.488 Charleston              Alabama                   
+## # ℹ abbreviated name: ¹​opponent_short_display_name
+## # ℹ 13 more variables: opponent_rolling_ppp &lt;dbl&gt;,
+## #   opponent_rolling_total_rebounds &lt;dbl&gt;,
+## #   opponent_rolling_field_goal_pct &lt;dbl&gt;, opponent_rolling_fouls &lt;dbl&gt;,
+## #   opponent_rolling_player_value &lt;dbl&gt;, game_id &lt;int&gt;, game_date &lt;date&gt;,
+## #   season &lt;int&gt;, team_rolling_ppp &lt;dbl&gt;, team_rolling_total_rebounds &lt;dbl&gt;,
+## #   team_rolling_field_goal_pct &lt;dbl&gt;, team_rolling_fouls &lt;dbl&gt;, …</code></pre>
+<pre class="r"><code>southround4games &lt;- tibble(
+  team_short_display_name=&quot;Charleston&quot;,
+  opponent_short_display_name=&quot;NC State&quot;
+)
+southround4games &lt;- modelgames %&gt;% group_by(team_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023)  %&gt;% select(-team_result, -starts_with(&quot;opponent&quot;)) %&gt;% right_join(southround4games)</code></pre>
+<pre><code>## Joining with `by = join_by(team_short_display_name)`</code></pre>
+<pre class="r"><code>southround4games &lt;- modelgames %&gt;% group_by(opponent_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023) %&gt;% ungroup() %&gt;% select(-team_result, -starts_with(&quot;team&quot;), -game_id, -game_date, -season) %&gt;% right_join(southround4games) </code></pre>
+<pre><code>## Joining with `by = join_by(opponent_short_display_name)`</code></pre>
+<pre class="r"><code>southround4 &lt;- lightgbm_fit %&gt;% predict(new_data = southround4games) %&gt;%
+  bind_cols(southround4games) %&gt;% select(.pred_class, team_short_display_name, opponent_short_display_name, everything())
+
+southround4 &lt;- lightgbm_fit %&gt;% predict(new_data = southround4games, type=&quot;prob&quot;) %&gt;%
+  bind_cols(southround4) %&gt;% select(.pred_class, .pred_W, .pred_L, team_short_display_name, opponent_short_display_name, everything())
+
+southround4</code></pre>
+<pre><code>## # A tibble: 1 × 18
+##   .pred_class .pred_W .pred_L team_short_display_name opponent_short_display_n…¹
+##   &lt;fct&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;                     
+## 1 W             0.564   0.436 Charleston              NC State                  
+## # ℹ abbreviated name: ¹​opponent_short_display_name
+## # ℹ 13 more variables: opponent_rolling_ppp &lt;dbl&gt;,
+## #   opponent_rolling_total_rebounds &lt;dbl&gt;,
+## #   opponent_rolling_field_goal_pct &lt;dbl&gt;, opponent_rolling_fouls &lt;dbl&gt;,
+## #   opponent_rolling_player_value &lt;dbl&gt;, game_id &lt;int&gt;, game_date &lt;date&gt;,
+## #   season &lt;int&gt;, team_rolling_ppp &lt;dbl&gt;, team_rolling_total_rebounds &lt;dbl&gt;,
+## #   team_rolling_field_goal_pct &lt;dbl&gt;, team_rolling_fouls &lt;dbl&gt;, …</code></pre>
+<pre><code>## # A tibble: 8 × 18
+##   .pred_class .pred_W .pred_L team_short_display_name opponent_short_display_n…¹
+##   &lt;fct&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;                     
+## 1 W             0.539   0.461 Tennessee               Louisiana                 
+## 2 W             0.506   0.494 Duke                    Oral Roberts              
+## 3 W             0.511   0.489 Purdue                  Fair Dickinson            
+## 4 L             0.440   0.560 Kansas State            Montana St                
+## 5 W             0.602   0.398 Michigan St             USC                       
+## 6 W             0.626   0.374 Kentucky                Providence                
+## 7 L             0.465   0.535 Memphis                 FAU                       
+## 8 L             0.372   0.628 Marquette               Vermont                   
+## # ℹ abbreviated name: ¹​opponent_short_display_name
+## # ℹ 13 more variables: opponent_rolling_ppp &lt;dbl&gt;,
+## #   opponent_rolling_total_rebounds &lt;dbl&gt;,
+## #   opponent_rolling_field_goal_pct &lt;dbl&gt;, opponent_rolling_fouls &lt;dbl&gt;,
+## #   opponent_rolling_player_value &lt;dbl&gt;, game_id &lt;int&gt;, game_date &lt;date&gt;,
+## #   season &lt;int&gt;, team_rolling_ppp &lt;dbl&gt;, team_rolling_total_rebounds &lt;dbl&gt;,
+## #   team_rolling_field_goal_pct &lt;dbl&gt;, team_rolling_fouls &lt;dbl&gt;, …</code></pre>
+<div id="uduatgjzig" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#uduatgjzig table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#uduatgjzig thead, #uduatgjzig tbody, #uduatgjzig tfoot, #uduatgjzig tr, #uduatgjzig td, #uduatgjzig th {
+  border-style: none;
+}
+
+#uduatgjzig p {
+  margin: 0;
+  padding: 0;
+}
+
+#uduatgjzig .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: none;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: none;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#uduatgjzig .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#uduatgjzig .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#uduatgjzig .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#uduatgjzig .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#uduatgjzig .gt_bottom_border {
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#uduatgjzig .gt_col_headings {
+  border-top-style: none;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#uduatgjzig .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#uduatgjzig .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#uduatgjzig .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#uduatgjzig .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#uduatgjzig .gt_column_spanner {
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#uduatgjzig .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#uduatgjzig .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: none;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#uduatgjzig .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: none;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#uduatgjzig .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#uduatgjzig .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#uduatgjzig .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: none;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#uduatgjzig .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#uduatgjzig .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#uduatgjzig .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#uduatgjzig .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#uduatgjzig .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#uduatgjzig .gt_first_summary_row {
+  border-top-style: none;
+  border-top-color: #D3D3D3;
+}
+
+#uduatgjzig .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#uduatgjzig .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#uduatgjzig .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#uduatgjzig .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: none;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#uduatgjzig .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: none;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#uduatgjzig .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#uduatgjzig .gt_table_body {
+  border-top-style: none;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#uduatgjzig .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#uduatgjzig .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#uduatgjzig .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#uduatgjzig .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#uduatgjzig .gt_left {
+  text-align: left;
+}
+
+#uduatgjzig .gt_center {
+  text-align: center;
+}
+
+#uduatgjzig .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#uduatgjzig .gt_font_normal {
+  font-weight: normal;
+}
+
+#uduatgjzig .gt_font_bold {
+  font-weight: bold;
+}
+
+#uduatgjzig .gt_font_italic {
+  font-style: italic;
+}
+
+#uduatgjzig .gt_super {
+  font-size: 65%;
+}
+
+#uduatgjzig .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#uduatgjzig .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#uduatgjzig .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#uduatgjzig .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#uduatgjzig .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#uduatgjzig .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#uduatgjzig .gt_indent_5 {
+  text-indent: 25px;
+}
+</style>
+<table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+  <thead>
+    
+    <tr class="gt_col_headings">
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" style="border-top-width: 1px; border-top-style: solid; border-top-color: grey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: grey;" scope="col" id="team_short_display_name">team_short_display_name</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" style="border-top-width: 1px; border-top-style: solid; border-top-color: grey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: grey;" scope="col" id=".pred_class">.pred_class</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" style="border-top-width: 1px; border-top-style: solid; border-top-color: grey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: grey;" scope="col" id="opponent_short_display_name">opponent_short_display_name</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" style="border-top-width: 1px; border-top-style: solid; border-top-color: grey; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: grey;" scope="col" id=".pred_W">.pred_W</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td headers="team_short_display_name" class="gt_row gt_left">Tennessee</td>
+<td headers=".pred_class" class="gt_row gt_center">W</td>
+<td headers="opponent_short_display_name" class="gt_row gt_left">Louisiana</td>
+<td headers=".pred_W" class="gt_row gt_right">0.5390133</td></tr>
+    <tr><td headers="team_short_display_name" class="gt_row gt_left gt_striped">Duke</td>
+<td headers=".pred_class" class="gt_row gt_center gt_striped">W</td>
+<td headers="opponent_short_display_name" class="gt_row gt_left gt_striped">Oral Roberts</td>
+<td headers=".pred_W" class="gt_row gt_right gt_striped">0.5056420</td></tr>
+    <tr><td headers="team_short_display_name" class="gt_row gt_left">Purdue</td>
+<td headers=".pred_class" class="gt_row gt_center">W</td>
+<td headers="opponent_short_display_name" class="gt_row gt_left">Fair Dickinson</td>
+<td headers=".pred_W" class="gt_row gt_right">0.5109520</td></tr>
+    <tr><td headers="team_short_display_name" class="gt_row gt_left gt_striped">Kansas State</td>
+<td headers=".pred_class" class="gt_row gt_center gt_striped">L</td>
+<td headers="opponent_short_display_name" class="gt_row gt_left gt_striped">Montana St</td>
+<td headers=".pred_W" class="gt_row gt_right gt_striped">0.4397084</td></tr>
+    <tr><td headers="team_short_display_name" class="gt_row gt_left">Michigan St</td>
+<td headers=".pred_class" class="gt_row gt_center">W</td>
+<td headers="opponent_short_display_name" class="gt_row gt_left">USC</td>
+<td headers=".pred_W" class="gt_row gt_right">0.6019138</td></tr>
+    <tr><td headers="team_short_display_name" class="gt_row gt_left gt_striped">Kentucky</td>
+<td headers=".pred_class" class="gt_row gt_center gt_striped">W</td>
+<td headers="opponent_short_display_name" class="gt_row gt_left gt_striped">Providence</td>
+<td headers=".pred_W" class="gt_row gt_right gt_striped">0.6260827</td></tr>
+    <tr><td headers="team_short_display_name" class="gt_row gt_left">Memphis</td>
+<td headers=".pred_class" class="gt_row gt_center">L</td>
+<td headers="opponent_short_display_name" class="gt_row gt_left">FAU</td>
+<td headers=".pred_W" class="gt_row gt_right">0.4649325</td></tr>
+    <tr><td headers="team_short_display_name" class="gt_row gt_left gt_striped">Marquette</td>
+<td headers=".pred_class" class="gt_row gt_center gt_striped">L</td>
+<td headers="opponent_short_display_name" class="gt_row gt_left gt_striped">Vermont</td>
+<td headers=".pred_W" class="gt_row gt_right gt_striped">0.3723962</td></tr>
+  </tbody>
+  
+  
+</table>
+</div>
+<p>This is the rundown of how confident my model is in the respective match ups. I am using the East round 1 games as an example here. You can see that It is giving a percentage of how likely the team on the right is to win over the team on the left.</p>
+<pre class="r"><code>eastround2games &lt;- tibble(
+  team_short_display_name=&quot;Fair Dickinson&quot;,
+  opponent_short_display_name=&quot;FAU&quot;
+) %&gt;% add_row(
+  team_short_display_name=&quot;Duke&quot;,
+  opponent_short_display_name=&quot;Tennessee&quot;
+)%&gt;% add_row(
+  team_short_display_name=&quot;Kentucky&quot;,
+  opponent_short_display_name=&quot;Montana St&quot;
+)%&gt;% add_row(
+  team_short_display_name=&quot;Vermont&quot;,
+  opponent_short_display_name=&quot;USC&quot;
+)
+eastround2games &lt;- modelgames %&gt;% group_by(team_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023)  %&gt;% select(-team_result, -starts_with(&quot;opponent&quot;)) %&gt;% right_join(eastround2games)</code></pre>
+<pre><code>## Joining with `by = join_by(team_short_display_name)`</code></pre>
+<pre class="r"><code>eastround2games &lt;- modelgames %&gt;% group_by(opponent_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023) %&gt;% ungroup() %&gt;% select(-team_result, -starts_with(&quot;team&quot;), -game_id, -game_date, -season) %&gt;% right_join(eastround2games) </code></pre>
+<pre><code>## Joining with `by = join_by(opponent_short_display_name)`</code></pre>
+<pre class="r"><code>eastround2 &lt;- lightgbm_fit %&gt;% predict(new_data = eastround2games) %&gt;%
+  bind_cols(eastround2games) %&gt;% select(.pred_class, team_short_display_name, opponent_short_display_name, everything())
+
+eastround2 &lt;- lightgbm_fit %&gt;% predict(new_data = eastround2games, type=&quot;prob&quot;) %&gt;%
+  bind_cols(eastround2) %&gt;% select(.pred_class, .pred_W, .pred_L, team_short_display_name, opponent_short_display_name, everything())
+
+eastround2</code></pre>
+<pre><code>## # A tibble: 4 × 18
+##   .pred_class .pred_W .pred_L team_short_display_name opponent_short_display_n…¹
+##   &lt;fct&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;                     
+## 1 L             0.477   0.523 Kentucky                Montana St                
+## 2 W             0.541   0.459 Vermont                 USC                       
+## 3 W             0.506   0.494 Duke                    Tennessee                 
+## 4 L             0.457   0.543 Fair Dickinson          FAU                       
+## # ℹ abbreviated name: ¹​opponent_short_display_name
+## # ℹ 13 more variables: opponent_rolling_ppp &lt;dbl&gt;,
+## #   opponent_rolling_total_rebounds &lt;dbl&gt;,
+## #   opponent_rolling_field_goal_pct &lt;dbl&gt;, opponent_rolling_fouls &lt;dbl&gt;,
+## #   opponent_rolling_player_value &lt;dbl&gt;, game_id &lt;int&gt;, game_date &lt;date&gt;,
+## #   season &lt;int&gt;, team_rolling_ppp &lt;dbl&gt;, team_rolling_total_rebounds &lt;dbl&gt;,
+## #   team_rolling_field_goal_pct &lt;dbl&gt;, team_rolling_fouls &lt;dbl&gt;, …</code></pre>
+<pre class="r"><code>eastround3games &lt;- tibble(
+  team_short_display_name=&quot;Duke&quot;,
+  opponent_short_display_name=&quot;FAU&quot;
+) %&gt;% add_row(
+  team_short_display_name=&quot;Kentucky&quot;,
+  opponent_short_display_name=&quot;USC&quot;
+)
+eastround3games &lt;- modelgames %&gt;% group_by(team_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023)  %&gt;% select(-team_result, -starts_with(&quot;opponent&quot;)) %&gt;% right_join(eastround3games)</code></pre>
+<pre><code>## Joining with `by = join_by(team_short_display_name)`</code></pre>
+<pre class="r"><code>eastround3games &lt;- modelgames %&gt;% group_by(opponent_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023) %&gt;% ungroup() %&gt;% select(-team_result, -starts_with(&quot;team&quot;), -game_id, -game_date, -season) %&gt;% right_join(eastround3games) </code></pre>
+<pre><code>## Joining with `by = join_by(opponent_short_display_name)`</code></pre>
+<pre class="r"><code>eastround3 &lt;- lightgbm_fit %&gt;% predict(new_data = eastround3games) %&gt;%
+  bind_cols(eastround3games) %&gt;% select(.pred_class, team_short_display_name, opponent_short_display_name, everything())
+
+eastround3 &lt;- lightgbm_fit %&gt;% predict(new_data = eastround3games, type=&quot;prob&quot;) %&gt;%
+  bind_cols(eastround3) %&gt;% select(.pred_class, .pred_W, .pred_L, team_short_display_name, opponent_short_display_name, everything())
+
+eastround3</code></pre>
+<pre><code>## # A tibble: 2 × 18
+##   .pred_class .pred_W .pred_L team_short_display_name opponent_short_display_n…¹
+##   &lt;fct&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;                     
+## 1 W             0.657   0.343 Kentucky                USC                       
+## 2 L             0.485   0.515 Duke                    FAU                       
+## # ℹ abbreviated name: ¹​opponent_short_display_name
+## # ℹ 13 more variables: opponent_rolling_ppp &lt;dbl&gt;,
+## #   opponent_rolling_total_rebounds &lt;dbl&gt;,
+## #   opponent_rolling_field_goal_pct &lt;dbl&gt;, opponent_rolling_fouls &lt;dbl&gt;,
+## #   opponent_rolling_player_value &lt;dbl&gt;, game_id &lt;int&gt;, game_date &lt;date&gt;,
+## #   season &lt;int&gt;, team_rolling_ppp &lt;dbl&gt;, team_rolling_total_rebounds &lt;dbl&gt;,
+## #   team_rolling_field_goal_pct &lt;dbl&gt;, team_rolling_fouls &lt;dbl&gt;, …</code></pre>
+<pre class="r"><code>eastround4games &lt;- tibble(
+  team_short_display_name=&quot;Kentucky&quot;,
+  opponent_short_display_name=&quot;FAU&quot;
+)
+eastround4games &lt;- modelgames %&gt;% group_by(team_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023)  %&gt;% select(-team_result, -starts_with(&quot;opponent&quot;)) %&gt;% right_join(eastround4games)</code></pre>
+<pre><code>## Joining with `by = join_by(team_short_display_name)`</code></pre>
+<pre class="r"><code>eastround4games &lt;- modelgames %&gt;% group_by(opponent_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023) %&gt;% ungroup() %&gt;% select(-team_result, -starts_with(&quot;team&quot;), -game_id, -game_date, -season) %&gt;% right_join(eastround4games) </code></pre>
+<pre><code>## Joining with `by = join_by(opponent_short_display_name)`</code></pre>
+<pre class="r"><code>eastround4 &lt;- lightgbm_fit %&gt;% predict(new_data = eastround4games) %&gt;%
+  bind_cols(eastround4games) %&gt;% select(.pred_class, team_short_display_name, opponent_short_display_name, everything())
+
+eastround4 &lt;- lightgbm_fit %&gt;% predict(new_data = eastround4games, type=&quot;prob&quot;) %&gt;%
+  bind_cols(eastround4) %&gt;% select(.pred_class, .pred_W, .pred_L, team_short_display_name, opponent_short_display_name, everything())
+
+eastround4</code></pre>
+<pre><code>## # A tibble: 1 × 18
+##   .pred_class .pred_W .pred_L team_short_display_name opponent_short_display_n…¹
+##   &lt;fct&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;                     
+## 1 L             0.438   0.562 Kentucky                FAU                       
+## # ℹ abbreviated name: ¹​opponent_short_display_name
+## # ℹ 13 more variables: opponent_rolling_ppp &lt;dbl&gt;,
+## #   opponent_rolling_total_rebounds &lt;dbl&gt;,
+## #   opponent_rolling_field_goal_pct &lt;dbl&gt;, opponent_rolling_fouls &lt;dbl&gt;,
+## #   opponent_rolling_player_value &lt;dbl&gt;, game_id &lt;int&gt;, game_date &lt;date&gt;,
+## #   season &lt;int&gt;, team_rolling_ppp &lt;dbl&gt;, team_rolling_total_rebounds &lt;dbl&gt;,
+## #   team_rolling_field_goal_pct &lt;dbl&gt;, team_rolling_fouls &lt;dbl&gt;, …</code></pre>
+<pre class="r"><code>midwestround1games &lt;- tibble(
+  team_short_display_name=&quot;Houston&quot;,
+  opponent_short_display_name=&quot;N Kentucky&quot;
+) %&gt;% add_row(
+  team_short_display_name=&quot;Iowa&quot;,
+  opponent_short_display_name=&quot;Auburn&quot;
+)%&gt;% add_row(
+  team_short_display_name=&quot;Miami&quot;,
+  opponent_short_display_name=&quot;Drake&quot;
+)%&gt;% add_row(
+  team_short_display_name=&quot;Indiana&quot;,
+  opponent_short_display_name=&quot;Kent State&quot;
+)%&gt;% add_row(
+  team_short_display_name=&quot;Iowa State&quot;,
+  opponent_short_display_name=&quot;Pittsburgh&quot;
+)%&gt;% add_row(
+  team_short_display_name=&quot;Xavier&quot;,
+  opponent_short_display_name=&quot;Kennesaw St&quot;
+)%&gt;% add_row(
+  team_short_display_name=&quot;Texas A&amp;M&quot;,
+  opponent_short_display_name=&quot;Penn State&quot;
+)%&gt;% add_row(
+  team_short_display_name=&quot;Texas&quot;,
+  opponent_short_display_name=&quot;Colgate&quot;
+)
+midwestround1games &lt;- modelgames %&gt;% group_by(team_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023)  %&gt;% select(-team_result, -starts_with(&quot;opponent&quot;)) %&gt;% right_join(midwestround1games)</code></pre>
+<pre><code>## Joining with `by = join_by(team_short_display_name)`</code></pre>
+<pre class="r"><code>midwestround1games &lt;- modelgames %&gt;% group_by(opponent_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023) %&gt;% ungroup() %&gt;% select(-team_result, -starts_with(&quot;team&quot;), -game_id, -game_date, -season) %&gt;% right_join(midwestround1games) </code></pre>
+<pre><code>## Joining with `by = join_by(opponent_short_display_name)`</code></pre>
+<pre class="r"><code>midwestround1 &lt;- lightgbm_fit %&gt;% predict(new_data = midwestround1games) %&gt;%
+  bind_cols(midwestround1games) %&gt;% select(.pred_class, team_short_display_name, opponent_short_display_name, everything())
+
+midwestround1 &lt;- lightgbm_fit %&gt;% predict(new_data = midwestround1games, type=&quot;prob&quot;) %&gt;%
+  bind_cols(midwestround1) %&gt;% select(.pred_class, .pred_W, .pred_L, team_short_display_name, opponent_short_display_name, everything())
+
+midwestround1</code></pre>
+<pre><code>## # A tibble: 8 × 18
+##   .pred_class .pred_W .pred_L team_short_display_name opponent_short_display_n…¹
+##   &lt;fct&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;                     
+## 1 W             0.579   0.421 Xavier                  Kennesaw St               
+## 2 W             0.516   0.484 Miami                   Drake                     
+## 3 L             0.367   0.633 Houston                 N Kentucky                
+## 4 L             0.349   0.651 Texas                   Colgate                   
+## 5 W             0.671   0.329 Iowa                    Auburn                    
+## 6 L             0.313   0.687 Indiana                 Kent State                
+## 7 L             0.496   0.504 Texas A&amp;M               Penn State                
+## 8 L             0.485   0.515 Iowa State              Pittsburgh                
+## # ℹ abbreviated name: ¹​opponent_short_display_name
+## # ℹ 13 more variables: opponent_rolling_ppp &lt;dbl&gt;,
+## #   opponent_rolling_total_rebounds &lt;dbl&gt;,
+## #   opponent_rolling_field_goal_pct &lt;dbl&gt;, opponent_rolling_fouls &lt;dbl&gt;,
+## #   opponent_rolling_player_value &lt;dbl&gt;, game_id &lt;int&gt;, game_date &lt;date&gt;,
+## #   season &lt;int&gt;, team_rolling_ppp &lt;dbl&gt;, team_rolling_total_rebounds &lt;dbl&gt;,
+## #   team_rolling_field_goal_pct &lt;dbl&gt;, team_rolling_fouls &lt;dbl&gt;, …</code></pre>
+<pre class="r"><code>midwestround2games &lt;- tibble(
+  team_short_display_name=&quot;Houston&quot;,
+  opponent_short_display_name=&quot;Iowa&quot;
+) %&gt;% add_row(
+  team_short_display_name=&quot;Miami&quot;,
+  opponent_short_display_name=&quot;Kent State&quot;
+)%&gt;% add_row(
+  team_short_display_name=&quot;Pittsburgh&quot;,
+  opponent_short_display_name=&quot;Xavier&quot;
+)%&gt;% add_row(
+  team_short_display_name=&quot;Penn State&quot;,
+  opponent_short_display_name=&quot;Colgate&quot;
+)
+midwestround2games &lt;- modelgames %&gt;% group_by(team_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023)  %&gt;% select(-team_result, -starts_with(&quot;opponent&quot;)) %&gt;% right_join(midwestround2games)</code></pre>
+<pre><code>## Joining with `by = join_by(team_short_display_name)`</code></pre>
+<pre class="r"><code>midwestround2games &lt;- modelgames %&gt;% group_by(opponent_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023) %&gt;% ungroup() %&gt;% select(-team_result, -starts_with(&quot;team&quot;), -game_id, -game_date, -season) %&gt;% right_join(midwestround2games) </code></pre>
+<pre><code>## Joining with `by = join_by(opponent_short_display_name)`</code></pre>
+<pre class="r"><code>midwestround2 &lt;- lightgbm_fit %&gt;% predict(new_data = midwestround2games) %&gt;%
+  bind_cols(midwestround2games) %&gt;% select(.pred_class, team_short_display_name, opponent_short_display_name, everything())
+
+midwestround2 &lt;- lightgbm_fit %&gt;% predict(new_data = midwestround2games, type=&quot;prob&quot;) %&gt;%
+  bind_cols(midwestround2) %&gt;% select(.pred_class, .pred_W, .pred_L, team_short_display_name, opponent_short_display_name, everything())
+
+midwestround2</code></pre>
+<pre><code>## # A tibble: 4 × 18
+##   .pred_class .pred_W .pred_L team_short_display_name opponent_short_display_n…¹
+##   &lt;fct&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;                     
+## 1 L             0.361   0.639 Penn State              Colgate                   
+## 2 L             0.359   0.641 Houston                 Iowa                      
+## 3 L             0.408   0.592 Miami                   Kent State                
+## 4 L             0.342   0.658 Pittsburgh              Xavier                    
+## # ℹ abbreviated name: ¹​opponent_short_display_name
+## # ℹ 13 more variables: opponent_rolling_ppp &lt;dbl&gt;,
+## #   opponent_rolling_total_rebounds &lt;dbl&gt;,
+## #   opponent_rolling_field_goal_pct &lt;dbl&gt;, opponent_rolling_fouls &lt;dbl&gt;,
+## #   opponent_rolling_player_value &lt;dbl&gt;, game_id &lt;int&gt;, game_date &lt;date&gt;,
+## #   season &lt;int&gt;, team_rolling_ppp &lt;dbl&gt;, team_rolling_total_rebounds &lt;dbl&gt;,
+## #   team_rolling_field_goal_pct &lt;dbl&gt;, team_rolling_fouls &lt;dbl&gt;, …</code></pre>
+<pre class="r"><code>midwestround3games &lt;- tibble(
+  team_short_display_name=&quot;Houston&quot;,
+  opponent_short_display_name=&quot;Miami&quot;
+) %&gt;% add_row(
+  team_short_display_name=&quot;Xavier&quot;,
+  opponent_short_display_name=&quot;Colgate&quot;
+)
+midwestround3games &lt;- modelgames %&gt;% group_by(team_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023)  %&gt;% select(-team_result, -starts_with(&quot;opponent&quot;)) %&gt;% right_join(midwestround3games)</code></pre>
+<pre><code>## Joining with `by = join_by(team_short_display_name)`</code></pre>
+<pre class="r"><code>midwestround3games &lt;- modelgames %&gt;% group_by(opponent_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023) %&gt;% ungroup() %&gt;% select(-team_result, -starts_with(&quot;team&quot;), -game_id, -game_date, -season) %&gt;% right_join(midwestround3games) </code></pre>
+<pre><code>## Joining with `by = join_by(opponent_short_display_name)`</code></pre>
+<pre class="r"><code>midwestround3 &lt;- lightgbm_fit %&gt;% predict(new_data = midwestround3games) %&gt;%
+  bind_cols(midwestround3games) %&gt;% select(.pred_class, team_short_display_name, opponent_short_display_name, everything())
+
+midwestround3 &lt;- lightgbm_fit %&gt;% predict(new_data = midwestround3games, type=&quot;prob&quot;) %&gt;%
+  bind_cols(midwestround3) %&gt;% select(.pred_class, .pred_W, .pred_L, team_short_display_name, opponent_short_display_name, everything())
+
+midwestround3</code></pre>
+<pre><code>## # A tibble: 2 × 18
+##   .pred_class .pred_W .pred_L team_short_display_name opponent_short_display_n…¹
+##   &lt;fct&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;                     
+## 1 W             0.533   0.467 Xavier                  Colgate                   
+## 2 L             0.394   0.606 Houston                 Miami                     
+## # ℹ abbreviated name: ¹​opponent_short_display_name
+## # ℹ 13 more variables: opponent_rolling_ppp &lt;dbl&gt;,
+## #   opponent_rolling_total_rebounds &lt;dbl&gt;,
+## #   opponent_rolling_field_goal_pct &lt;dbl&gt;, opponent_rolling_fouls &lt;dbl&gt;,
+## #   opponent_rolling_player_value &lt;dbl&gt;, game_id &lt;int&gt;, game_date &lt;date&gt;,
+## #   season &lt;int&gt;, team_rolling_ppp &lt;dbl&gt;, team_rolling_total_rebounds &lt;dbl&gt;,
+## #   team_rolling_field_goal_pct &lt;dbl&gt;, team_rolling_fouls &lt;dbl&gt;, …</code></pre>
+<pre class="r"><code>midwestround4games &lt;- tibble(
+  team_short_display_name=&quot;Houston&quot;,
+  opponent_short_display_name=&quot;Colgate&quot;
+) 
+midwestround4games &lt;- modelgames %&gt;% group_by(team_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023)  %&gt;% select(-team_result, -starts_with(&quot;opponent&quot;)) %&gt;% right_join(midwestround4games)</code></pre>
+<pre><code>## Joining with `by = join_by(team_short_display_name)`</code></pre>
+<pre class="r"><code>midwestround4games &lt;- modelgames %&gt;% group_by(opponent_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023) %&gt;% ungroup() %&gt;% select(-team_result, -starts_with(&quot;team&quot;), -game_id, -game_date, -season) %&gt;% right_join(midwestround4games) </code></pre>
+<pre><code>## Joining with `by = join_by(opponent_short_display_name)`</code></pre>
+<pre class="r"><code>midwestround4 &lt;- lightgbm_fit %&gt;% predict(new_data = midwestround4games) %&gt;%
+  bind_cols(midwestround4games) %&gt;% select(.pred_class, team_short_display_name, opponent_short_display_name, everything())
+
+midwestround4 &lt;- lightgbm_fit %&gt;% predict(new_data = midwestround4games, type=&quot;prob&quot;) %&gt;%
+  bind_cols(midwestround4) %&gt;% select(.pred_class, .pred_W, .pred_L, team_short_display_name, opponent_short_display_name, everything())
+
+midwestround4</code></pre>
+<pre><code>## # A tibble: 1 × 18
+##   .pred_class .pred_W .pred_L team_short_display_name opponent_short_display_n…¹
+##   &lt;fct&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;                     
+## 1 L             0.335   0.665 Houston                 Colgate                   
+## # ℹ abbreviated name: ¹​opponent_short_display_name
+## # ℹ 13 more variables: opponent_rolling_ppp &lt;dbl&gt;,
+## #   opponent_rolling_total_rebounds &lt;dbl&gt;,
+## #   opponent_rolling_field_goal_pct &lt;dbl&gt;, opponent_rolling_fouls &lt;dbl&gt;,
+## #   opponent_rolling_player_value &lt;dbl&gt;, game_id &lt;int&gt;, game_date &lt;date&gt;,
+## #   season &lt;int&gt;, team_rolling_ppp &lt;dbl&gt;, team_rolling_total_rebounds &lt;dbl&gt;,
+## #   team_rolling_field_goal_pct &lt;dbl&gt;, team_rolling_fouls &lt;dbl&gt;, …</code></pre>
+<pre class="r"><code>westround1games &lt;- tibble(
+  team_short_display_name=&quot;Kansas&quot;,
+  opponent_short_display_name=&quot;Howard&quot;
+) %&gt;% add_row(
+  team_short_display_name=&quot;Arkansas&quot;,
+  opponent_short_display_name=&quot;Illinois&quot;
+)%&gt;% add_row(
+  team_short_display_name=&quot;Saint Mary&#39;s&quot;,
+  opponent_short_display_name=&quot;VCU&quot;
+)%&gt;% add_row(
+  team_short_display_name=&quot;UConn&quot;,
+  opponent_short_display_name=&quot;Iona&quot;
+)%&gt;% add_row(
+  team_short_display_name=&quot;TCU&quot;,
+  opponent_short_display_name=&quot;Nevada&quot;
+)%&gt;% add_row(
+  team_short_display_name=&quot;Gonzaga&quot;,
+  opponent_short_display_name=&quot;Grand Canyon&quot;
+)%&gt;% add_row(
+  team_short_display_name=&quot;Northwestern&quot;,
+  opponent_short_display_name=&quot;Boise St&quot;
+)%&gt;% add_row(
+  team_short_display_name=&quot;UCLA&quot;,
+  opponent_short_display_name=&quot;UNC Asheville&quot;
+)
+westround1games &lt;- modelgames %&gt;% group_by(team_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023)  %&gt;% select(-team_result, -starts_with(&quot;opponent&quot;)) %&gt;% right_join(westround1games)</code></pre>
+<pre><code>## Joining with `by = join_by(team_short_display_name)`</code></pre>
+<pre class="r"><code>westround1games &lt;- modelgames %&gt;% group_by(opponent_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023) %&gt;% ungroup() %&gt;% select(-team_result, -starts_with(&quot;team&quot;), -game_id, -game_date, -season) %&gt;% right_join(westround1games) </code></pre>
+<pre><code>## Joining with `by = join_by(opponent_short_display_name)`</code></pre>
+<pre class="r"><code>westround1 &lt;- lightgbm_fit %&gt;% predict(new_data = westround1games) %&gt;%
+  bind_cols(westround1games) %&gt;% select(.pred_class, team_short_display_name, opponent_short_display_name, everything())
+
+westround1 &lt;- lightgbm_fit %&gt;% predict(new_data = westround1games, type=&quot;prob&quot;) %&gt;%
+  bind_cols(westround1) %&gt;% select(.pred_class, .pred_W, .pred_L, team_short_display_name, opponent_short_display_name, everything())
+
+westround1</code></pre>
+<pre><code>## # A tibble: 8 × 18
+##   .pred_class .pred_W .pred_L team_short_display_name opponent_short_display_n…¹
+##   &lt;fct&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;                     
+## 1 L             0.468   0.532 UCLA                    UNC Asheville             
+## 2 L             0.447   0.553 Arkansas                Illinois                  
+## 3 W             0.522   0.478 TCU                     Nevada                    
+## 4 L             0.445   0.555 Northwestern            Boise St                  
+## 5 W             0.621   0.379 Gonzaga                 Grand Canyon              
+## 6 L             0.479   0.521 UConn                   Iona                      
+## 7 L             0.302   0.698 Kansas                  Howard                    
+## 8 L             0.420   0.580 Saint Mary&#39;s            VCU                       
+## # ℹ abbreviated name: ¹​opponent_short_display_name
+## # ℹ 13 more variables: opponent_rolling_ppp &lt;dbl&gt;,
+## #   opponent_rolling_total_rebounds &lt;dbl&gt;,
+## #   opponent_rolling_field_goal_pct &lt;dbl&gt;, opponent_rolling_fouls &lt;dbl&gt;,
+## #   opponent_rolling_player_value &lt;dbl&gt;, game_id &lt;int&gt;, game_date &lt;date&gt;,
+## #   season &lt;int&gt;, team_rolling_ppp &lt;dbl&gt;, team_rolling_total_rebounds &lt;dbl&gt;,
+## #   team_rolling_field_goal_pct &lt;dbl&gt;, team_rolling_fouls &lt;dbl&gt;, …</code></pre>
+<pre class="r"><code>westround2games &lt;- tibble(
+  team_short_display_name=&quot;Kansas&quot;,
+  opponent_short_display_name=&quot;Arkansas&quot;
+) %&gt;% add_row(
+  team_short_display_name=&quot;Gonzaga&quot;,
+  opponent_short_display_name=&quot;Nevada&quot;
+)%&gt;% add_row(
+  team_short_display_name=&quot;Iona&quot;,
+  opponent_short_display_name=&quot;VCU&quot;
+)%&gt;% add_row(
+  team_short_display_name=&quot;Boise St&quot;,
+  opponent_short_display_name=&quot;UCLA&quot;
+)
+westround2games &lt;- modelgames %&gt;% group_by(team_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023)  %&gt;% select(-team_result, -starts_with(&quot;opponent&quot;)) %&gt;% right_join(westround2games)</code></pre>
+<pre><code>## Joining with `by = join_by(team_short_display_name)`</code></pre>
+<pre class="r"><code>westround2games &lt;- modelgames %&gt;% group_by(opponent_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023) %&gt;% ungroup() %&gt;% select(-team_result, -starts_with(&quot;team&quot;), -game_id, -game_date, -season) %&gt;% right_join(westround2games) </code></pre>
+<pre><code>## Joining with `by = join_by(opponent_short_display_name)`</code></pre>
+<pre class="r"><code>westround2 &lt;- lightgbm_fit %&gt;% predict(new_data = westround2games) %&gt;%
+  bind_cols(westround2games) %&gt;% select(.pred_class, team_short_display_name, opponent_short_display_name, everything())
+
+westround2 &lt;- lightgbm_fit %&gt;% predict(new_data = westround2games, type=&quot;prob&quot;) %&gt;%
+  bind_cols(westround2) %&gt;% select(.pred_class, .pred_W, .pred_L, team_short_display_name, opponent_short_display_name, everything())
+
+westround2</code></pre>
+<pre><code>## # A tibble: 4 × 18
+##   .pred_class .pred_W .pred_L team_short_display_name opponent_short_display_n…¹
+##   &lt;fct&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;                     
+## 1 W             0.800   0.200 Gonzaga                 Nevada                    
+## 2 W             0.523   0.477 Kansas                  Arkansas                  
+## 3 L             0.489   0.511 Boise St                UCLA                      
+## 4 W             0.595   0.405 Iona                    VCU                       
+## # ℹ abbreviated name: ¹​opponent_short_display_name
+## # ℹ 13 more variables: opponent_rolling_ppp &lt;dbl&gt;,
+## #   opponent_rolling_total_rebounds &lt;dbl&gt;,
+## #   opponent_rolling_field_goal_pct &lt;dbl&gt;, opponent_rolling_fouls &lt;dbl&gt;,
+## #   opponent_rolling_player_value &lt;dbl&gt;, game_id &lt;int&gt;, game_date &lt;date&gt;,
+## #   season &lt;int&gt;, team_rolling_ppp &lt;dbl&gt;, team_rolling_total_rebounds &lt;dbl&gt;,
+## #   team_rolling_field_goal_pct &lt;dbl&gt;, team_rolling_fouls &lt;dbl&gt;, …</code></pre>
+<pre class="r"><code>westround3games &lt;- tibble(
+  team_short_display_name=&quot;Kansas&quot;,
+  opponent_short_display_name=&quot;Iona&quot;
+) %&gt;% add_row(
+  team_short_display_name=&quot;Gonzaga&quot;,
+  opponent_short_display_name=&quot;UCLA&quot;
+)
+westround3games &lt;- modelgames %&gt;% group_by(team_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023)  %&gt;% select(-team_result, -starts_with(&quot;opponent&quot;)) %&gt;% right_join(westround3games)</code></pre>
+<pre><code>## Joining with `by = join_by(team_short_display_name)`</code></pre>
+<pre class="r"><code>westround3games &lt;- modelgames %&gt;% group_by(opponent_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023) %&gt;% ungroup() %&gt;% select(-team_result, -starts_with(&quot;team&quot;), -game_id, -game_date, -season) %&gt;% right_join(westround3games) </code></pre>
+<pre><code>## Joining with `by = join_by(opponent_short_display_name)`</code></pre>
+<pre class="r"><code>westround3 &lt;- lightgbm_fit %&gt;% predict(new_data = westround3games) %&gt;%
+  bind_cols(westround3games) %&gt;% select(.pred_class, team_short_display_name, opponent_short_display_name, everything())
+
+westround3 &lt;- lightgbm_fit %&gt;% predict(new_data = westround3games, type=&quot;prob&quot;) %&gt;%
+  bind_cols(westround3) %&gt;% select(.pred_class, .pred_W, .pred_L, team_short_display_name, opponent_short_display_name, everything())
+
+westround3</code></pre>
+<pre><code>## # A tibble: 2 × 18
+##   .pred_class .pred_W .pred_L team_short_display_name opponent_short_display_n…¹
+##   &lt;fct&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;                     
+## 1 W             0.709   0.291 Gonzaga                 UCLA                      
+## 2 L             0.247   0.753 Kansas                  Iona                      
+## # ℹ abbreviated name: ¹​opponent_short_display_name
+## # ℹ 13 more variables: opponent_rolling_ppp &lt;dbl&gt;,
+## #   opponent_rolling_total_rebounds &lt;dbl&gt;,
+## #   opponent_rolling_field_goal_pct &lt;dbl&gt;, opponent_rolling_fouls &lt;dbl&gt;,
+## #   opponent_rolling_player_value &lt;dbl&gt;, game_id &lt;int&gt;, game_date &lt;date&gt;,
+## #   season &lt;int&gt;, team_rolling_ppp &lt;dbl&gt;, team_rolling_total_rebounds &lt;dbl&gt;,
+## #   team_rolling_field_goal_pct &lt;dbl&gt;, team_rolling_fouls &lt;dbl&gt;, …</code></pre>
+<pre class="r"><code>westround4games &lt;- tibble(
+  team_short_display_name=&quot;Gonzaga&quot;,
+  opponent_short_display_name=&quot;Iona&quot;
+)
+westround4games &lt;- modelgames %&gt;% group_by(team_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023)  %&gt;% select(-team_result, -starts_with(&quot;opponent&quot;)) %&gt;% right_join(westround4games)</code></pre>
+<pre><code>## Joining with `by = join_by(team_short_display_name)`</code></pre>
+<pre class="r"><code>westround4games &lt;- modelgames %&gt;% group_by(opponent_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023) %&gt;% ungroup() %&gt;% select(-team_result, -starts_with(&quot;team&quot;), -game_id, -game_date, -season) %&gt;% right_join(westround4games) </code></pre>
+<pre><code>## Joining with `by = join_by(opponent_short_display_name)`</code></pre>
+<pre class="r"><code>westround4 &lt;- lightgbm_fit %&gt;% predict(new_data = westround4games) %&gt;%
+  bind_cols(westround4games) %&gt;% select(.pred_class, team_short_display_name, opponent_short_display_name, everything())
+
+westround4 &lt;- lightgbm_fit %&gt;% predict(new_data = westround4games, type=&quot;prob&quot;) %&gt;%
+  bind_cols(westround4) %&gt;% select(.pred_class, .pred_W, .pred_L, team_short_display_name, opponent_short_display_name, everything())
+
+westround4</code></pre>
+<pre><code>## # A tibble: 1 × 18
+##   .pred_class .pred_W .pred_L team_short_display_name opponent_short_display_n…¹
+##   &lt;fct&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;                     
+## 1 W             0.501   0.499 Gonzaga                 Iona                      
+## # ℹ abbreviated name: ¹​opponent_short_display_name
+## # ℹ 13 more variables: opponent_rolling_ppp &lt;dbl&gt;,
+## #   opponent_rolling_total_rebounds &lt;dbl&gt;,
+## #   opponent_rolling_field_goal_pct &lt;dbl&gt;, opponent_rolling_fouls &lt;dbl&gt;,
+## #   opponent_rolling_player_value &lt;dbl&gt;, game_id &lt;int&gt;, game_date &lt;date&gt;,
+## #   season &lt;int&gt;, team_rolling_ppp &lt;dbl&gt;, team_rolling_total_rebounds &lt;dbl&gt;,
+## #   team_rolling_field_goal_pct &lt;dbl&gt;, team_rolling_fouls &lt;dbl&gt;, …</code></pre>
+<pre class="r"><code>finalfourgames &lt;- tibble(
+  team_short_display_name=&quot;Charleston&quot;,
+  opponent_short_display_name=&quot;FAU&quot;
+) %&gt;% add_row(
+  team_short_display_name=&quot;Gonzaga&quot;,
+  opponent_short_display_name=&quot;Colgate&quot;
+)
+finalfourgames &lt;- modelgames %&gt;% group_by(team_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023)  %&gt;% select(-team_result, -starts_with(&quot;opponent&quot;)) %&gt;% right_join(finalfourgames)</code></pre>
+<pre><code>## Joining with `by = join_by(team_short_display_name)`</code></pre>
+<pre class="r"><code>finalfourgames &lt;- modelgames %&gt;% group_by(opponent_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023) %&gt;% ungroup() %&gt;% select(-team_result, -starts_with(&quot;team&quot;), -game_id, -game_date, -season) %&gt;% right_join(finalfourgames) </code></pre>
+<pre><code>## Joining with `by = join_by(opponent_short_display_name)`</code></pre>
+<pre class="r"><code>finalfour &lt;- lightgbm_fit %&gt;% predict(new_data = finalfourgames) %&gt;%
+  bind_cols(finalfourgames) %&gt;% select(.pred_class, team_short_display_name, opponent_short_display_name, everything())
+
+finalfour &lt;- lightgbm_fit %&gt;% predict(new_data = finalfourgames, type=&quot;prob&quot;) %&gt;%
+  bind_cols(finalfour) %&gt;% select(.pred_class, .pred_W, .pred_L, team_short_display_name, opponent_short_display_name, everything())
+
+finalfour</code></pre>
+<pre><code>## # A tibble: 2 × 18
+##   .pred_class .pred_W .pred_L team_short_display_name opponent_short_display_n…¹
+##   &lt;fct&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;                     
+## 1 W             0.537   0.463 Gonzaga                 Colgate                   
+## 2 L             0.492   0.508 Charleston              FAU                       
+## # ℹ abbreviated name: ¹​opponent_short_display_name
+## # ℹ 13 more variables: opponent_rolling_ppp &lt;dbl&gt;,
+## #   opponent_rolling_total_rebounds &lt;dbl&gt;,
+## #   opponent_rolling_field_goal_pct &lt;dbl&gt;, opponent_rolling_fouls &lt;dbl&gt;,
+## #   opponent_rolling_player_value &lt;dbl&gt;, game_id &lt;int&gt;, game_date &lt;date&gt;,
+## #   season &lt;int&gt;, team_rolling_ppp &lt;dbl&gt;, team_rolling_total_rebounds &lt;dbl&gt;,
+## #   team_rolling_field_goal_pct &lt;dbl&gt;, team_rolling_fouls &lt;dbl&gt;, …</code></pre>
+<pre class="r"><code>championshipgames &lt;- tibble(
+  team_short_display_name=&quot;Gonzaga&quot;,
+  opponent_short_display_name=&quot;FAU&quot;
+) 
+championshipgames &lt;- modelgames %&gt;% group_by(team_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023)  %&gt;% select(-team_result, -starts_with(&quot;opponent&quot;)) %&gt;% right_join(championshipgames)</code></pre>
+<pre><code>## Joining with `by = join_by(team_short_display_name)`</code></pre>
+<pre class="r"><code>championshipgames &lt;- modelgames %&gt;% group_by(opponent_short_display_name) %&gt;% filter(game_date == max(game_date) &amp; season == 2023) %&gt;% ungroup() %&gt;% select(-team_result, -starts_with(&quot;team&quot;), -game_id, -game_date, -season) %&gt;% right_join(championshipgames) </code></pre>
+<pre><code>## Joining with `by = join_by(opponent_short_display_name)`</code></pre>
+<pre class="r"><code>championship &lt;- lightgbm_fit %&gt;% predict(new_data = championshipgames) %&gt;%
+  bind_cols(championshipgames) %&gt;% select(.pred_class, team_short_display_name, opponent_short_display_name, everything())
+
+championship &lt;- lightgbm_fit %&gt;% predict(new_data = championshipgames, type=&quot;prob&quot;) %&gt;%
+  bind_cols(championship) %&gt;% select(.pred_class, .pred_W, .pred_L, team_short_display_name, opponent_short_display_name, everything())
+
+championship</code></pre>
+<pre><code>## # A tibble: 1 × 18
+##   .pred_class .pred_W .pred_L team_short_display_name opponent_short_display_n…¹
+##   &lt;fct&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                   &lt;chr&gt;                     
+## 1 W             0.534   0.466 Gonzaga                 FAU                       
+## # ℹ abbreviated name: ¹​opponent_short_display_name
+## # ℹ 13 more variables: opponent_rolling_ppp &lt;dbl&gt;,
+## #   opponent_rolling_total_rebounds &lt;dbl&gt;,
+## #   opponent_rolling_field_goal_pct &lt;dbl&gt;, opponent_rolling_fouls &lt;dbl&gt;,
+## #   opponent_rolling_player_value &lt;dbl&gt;, game_id &lt;int&gt;, game_date &lt;date&gt;,
+## #   season &lt;int&gt;, team_rolling_ppp &lt;dbl&gt;, team_rolling_total_rebounds &lt;dbl&gt;,
+## #   team_rolling_field_goal_pct &lt;dbl&gt;, team_rolling_fouls &lt;dbl&gt;, …</code></pre>
+<p>So after 700 lines of code what do I have to show for it? Well, all things considered, I didn’t do too bad. In the context of my class that is. I got second place in our class competition of whos model scores the most points. My model had FAU going all the way to play Gonzaga in the championship game. This is FAU’s first time in the tournament and that prediction wasn’t far off because they lost to San Diego State in the Final Four. I shed a tear when that buzzer beater went in because if FAU won, not only would I have insane bragging rights that I predicted FAU to go to the championship round, I would also have won my class table. Other than the almost impossible FAU call, my model wasn’t very great. I had Gonzaga winning it all and none of my other final four teams were correct. Heres a screenshot of my bracket:</p>
+<p><img src="images/Screenshot%202023-04-22%20at%208.28.33%20PM.png" />
+<img src="images/Screenshot%202023-04-22%20at%208.29.09%20PM.png" /></p>
 
     </div>
   </article>
@@ -92,6 +1266,18 @@
 
     </div>
     
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/r.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
+
+
 
     
 
