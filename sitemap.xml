@@ -2,13 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>http://nolanhemmett.github.io/2023/04/22/i-tried-to-use-machine-learning-to-predict-the-march-madness-tournament-and-it-sort-of-failed/</loc>
-    <lastmod>2023-04-22T00:00:00+00:00</lastmod>
-  </url><url>
     <loc>http://nolanhemmett.github.io/</loc>
-    <lastmod>2023-04-22T00:00:00+00:00</lastmod>
+    <lastmod>2023-05-10T00:00:00+00:00</lastmod>
   </url><url>
     <loc>http://nolanhemmett.github.io/post/</loc>
+    <lastmod>2023-05-10T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>http://nolanhemmett.github.io/2023/05/10/top-5-rookie-wide-receivers-for-your-fantasy-team/</loc>
+    <lastmod>2023-05-10T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>http://nolanhemmett.github.io/2023/04/22/i-tried-to-use-machine-learning-to-predict-the-march-madness-tournament-and-it-sort-of-failed/</loc>
     <lastmod>2023-04-22T00:00:00+00:00</lastmod>
   </url><url>
     <loc>http://nolanhemmett.github.io/2022/04/29/fc-barcelona-enters-a-new-era/</loc>

@@ -6,7 +6,18 @@
     <description>Recent content in Posts on Nolan Hemmett&#39;s GitHub Site</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 22 Apr 2023 00:00:00 +0000</lastBuildDate><atom:link href="http://nolanhemmett.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 10 May 2023 00:00:00 +0000</lastBuildDate><atom:link href="http://nolanhemmett.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Top 5 Rookie Wide Receivers For Your Fantasy Team, According to Machine Learning.</title>
+      <link>http://nolanhemmett.github.io/2023/05/10/top-5-rookie-wide-receivers-for-your-fantasy-team/</link>
+      <pubDate>Wed, 10 May 2023 00:00:00 +0000</pubDate>
+      
+      <guid>http://nolanhemmett.github.io/2023/05/10/top-5-rookie-wide-receivers-for-your-fantasy-team/</guid>
+      <description>I would consider myself an avid fantasy football player, while not being too great at it. I am hoping machine learning could give me an edge this year. I used an xgboost model to predict what rookie wide receivers would be the best.
+First we start with loading our libraries.
+library(tidyverse) library(tidymodels) library(cfbfastR) library(corrr) library(janitor) library(bonsai) library(gt) set.seed(1234) Then we get our wide receiver data to feed our model.</description>
+    </item>
+    
     <item>
       <title>I Tried To Use Machine Learning To Predict The March Madness Tournament And It Sort Of Failed.</title>
       <link>http://nolanhemmett.github.io/2023/04/22/i-tried-to-use-machine-learning-to-predict-the-march-madness-tournament-and-it-sort-of-failed/</link>

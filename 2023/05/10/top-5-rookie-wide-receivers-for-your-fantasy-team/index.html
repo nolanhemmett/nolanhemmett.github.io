@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.96.0" />
+
+
+<title>Top 5 Rookie Wide Receivers For Your Fantasy Team, According to Machine Learning. - Nolan Hemmett&#39;s GitHub Site</title>
+<meta property="og:title" content="Top 5 Rookie Wide Receivers For Your Fantasy Team, According to Machine Learning. - Nolan Hemmett&#39;s GitHub Site">
+
+
+  <link href='http://nolanhemmett.github.io/favicon.ico' rel='icon' type='image/x-icon'/>
+
+
+
+  
+
+
+
+
+
+
+
+
+<link href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css' rel='stylesheet' type='text/css' />
+
+
+
+<link rel="stylesheet" href="/css/fonts.css" media="all">
+<link rel="stylesheet" href="/css/main.css" media="all">
+
+
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="/" class="nav-logo">
+    <img src="/images/logo.png"
+         width="50"
+         height="50"
+         alt="Logo">
+  </a>
+
+  <ul class="nav-links">
+    
+    <li><a href="/about/">About</a></li>
+    
+    <li><a href="https://github.com/rstudio/blogdown">GitHub</a></li>
+    
+    <li><a href="https://twitter.com/rstudio">Twitter</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+    
+    <span class="article-duration">9 min read</span>
+    
+
+    <h1 class="article-title">Top 5 Rookie Wide Receivers For Your Fantasy Team, According to Machine Learning.</h1>
+
+    
+    <span class="article-date">2023-05-10</span>
+    
+
+    <div class="article-content">
+      
+
+
+<p>I would consider myself an avid fantasy football player, while not being too great at it. I am hoping machine learning could give me an edge this year. I used an xgboost model to predict what rookie wide receivers would be the best.</p>
+<p>First we start with loading our libraries.</p>
+<pre class="r"><code>library(tidyverse)
+library(tidymodels)
+library(cfbfastR)
+library(corrr)
+library(janitor)
+library(bonsai)
+library(gt)
+
+set.seed(1234)</code></pre>
+<p>Then we get our wide receiver data to feed our model.</p>
+<pre class="r"><code>wrstats &lt;- read_csv(&quot;https://mattwaite.github.io/sportsdatafiles/wrdraftedstatswithratings.csv&quot;) %&gt;% mutate(FantPt = case_when(FantPt == 0 ~ NA, TRUE ~ FantPt))</code></pre>
+<p>in wrselected I choose my metrics on what my model will base its predictions on.</p>
+<pre class="r"><code>wrselected &lt;- wrstats %&gt;%
+  select(
+    name,
+    year,
+    college_team,
+    nfl_team,
+    overall,
+    total_yards,
+    total_touchdowns,
+    rating,
+    average_long,
+    FantPt
+  ) %&gt;% na.omit()</code></pre>
+<p>After splitting the data into training and testing and creating fits and workflows, we have arrived at our model. So lets see what my model said.</p>
+<pre class="r"><code>currentxgpredict &lt;- 
+  xg_fit %&gt;% 
+  predict(new_data = currentwrselected) %&gt;%
+  bind_cols(currentwrselected) %&gt;% 
+  arrange()</code></pre>
+<p>Top 5 Rookie Wide Receivers For Your Fantasy Team</p>
+<p>With the 2023 NFL Draft under wraps, its now time to determine who’s on your fantasy roster next year. Using machine learning, I have created a top five list with, what I predict, to be some quality rookie wide receivers for next years NFL season and your kick-ass fantasy team.</p>
+<p>The Table:</p>
+<pre class="r"><code>currentxgpredict %&gt;% 
+  top_n(5, wt=.pred) %&gt;%
+  select(name, nfl_team, overall, .pred) %&gt;%
+  arrange(desc(.pred)) %&gt;%
+  gt()</code></pre>
+<div id="iwwsdjebet" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#iwwsdjebet table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#iwwsdjebet thead, #iwwsdjebet tbody, #iwwsdjebet tfoot, #iwwsdjebet tr, #iwwsdjebet td, #iwwsdjebet th {
+  border-style: none;
+}
+
+#iwwsdjebet p {
+  margin: 0;
+  padding: 0;
+}
+
+#iwwsdjebet .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#iwwsdjebet .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#iwwsdjebet .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#iwwsdjebet .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#iwwsdjebet .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#iwwsdjebet .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#iwwsdjebet .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#iwwsdjebet .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#iwwsdjebet .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#iwwsdjebet .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#iwwsdjebet .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#iwwsdjebet .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#iwwsdjebet .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#iwwsdjebet .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#iwwsdjebet .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#iwwsdjebet .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#iwwsdjebet .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#iwwsdjebet .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#iwwsdjebet .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#iwwsdjebet .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#iwwsdjebet .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#iwwsdjebet .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#iwwsdjebet .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#iwwsdjebet .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#iwwsdjebet .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#iwwsdjebet .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#iwwsdjebet .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#iwwsdjebet .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#iwwsdjebet .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#iwwsdjebet .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#iwwsdjebet .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#iwwsdjebet .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#iwwsdjebet .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#iwwsdjebet .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#iwwsdjebet .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#iwwsdjebet .gt_left {
+  text-align: left;
+}
+
+#iwwsdjebet .gt_center {
+  text-align: center;
+}
+
+#iwwsdjebet .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#iwwsdjebet .gt_font_normal {
+  font-weight: normal;
+}
+
+#iwwsdjebet .gt_font_bold {
+  font-weight: bold;
+}
+
+#iwwsdjebet .gt_font_italic {
+  font-style: italic;
+}
+
+#iwwsdjebet .gt_super {
+  font-size: 65%;
+}
+
+#iwwsdjebet .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#iwwsdjebet .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#iwwsdjebet .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#iwwsdjebet .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#iwwsdjebet .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#iwwsdjebet .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#iwwsdjebet .gt_indent_5 {
+  text-indent: 25px;
+}
+</style>
+<table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+  <thead>
+    
+    <tr class="gt_col_headings">
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="name">name</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="nfl_team">nfl_team</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="overall">overall</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id=".pred">.pred</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td headers="name" class="gt_row gt_left">Quentin Johnston</td>
+<td headers="nfl_team" class="gt_row gt_left">Los Angeles</td>
+<td headers="overall" class="gt_row gt_right">21</td>
+<td headers=".pred" class="gt_row gt_right">89.95129</td></tr>
+    <tr><td headers="name" class="gt_row gt_left">Jordan Addison</td>
+<td headers="nfl_team" class="gt_row gt_left">Minnesota</td>
+<td headers="overall" class="gt_row gt_right">23</td>
+<td headers=".pred" class="gt_row gt_right">87.25640</td></tr>
+    <tr><td headers="name" class="gt_row gt_left">Jaxon Smith-Njigba</td>
+<td headers="nfl_team" class="gt_row gt_left">Seattle</td>
+<td headers="overall" class="gt_row gt_right">20</td>
+<td headers=".pred" class="gt_row gt_right">67.38393</td></tr>
+    <tr><td headers="name" class="gt_row gt_left">Zay Flowers</td>
+<td headers="nfl_team" class="gt_row gt_left">Baltimore</td>
+<td headers="overall" class="gt_row gt_right">22</td>
+<td headers=".pred" class="gt_row gt_right">64.30890</td></tr>
+    <tr><td headers="name" class="gt_row gt_left">Jayden Reed</td>
+<td headers="nfl_team" class="gt_row gt_left">Green Bay</td>
+<td headers="overall" class="gt_row gt_right">50</td>
+<td headers=".pred" class="gt_row gt_right">60.13229</td></tr>
+  </tbody>
+  
+  
+</table>
+</div>
+<p>The .pred is the predicted fantasy points each receiver will get according to my model. Considering the small data set, I used a xgboost model to get those values. I fed my model with wide receiver fantasy points from 2013 -2022. In testing, my model was hovering around 40% accuracy. Again, given the small data size, I’ll take what I can get.</p>
+<p>The metrics I chose that created the .pred value were as follows: overall draft pick, total touchdowns, total yards, a team rating for their respective college team, and average long reception.</p>
+<ol style="list-style-type: decimal">
+<li>Quentin Johnston</li>
+</ol>
+<p>I think fantasy owners of Chargers wide receivers were frustrated last year. #1 Keenan Allen fell to injury on the first game and missed a considerable chunk of the year. Even after coming back, the Chargers offense wasn’t what everyone thought it was going to be. #2 receiver Mike Williams seemed to get 30 points one week and then 3 points the next.</p>
+<p>Enter Quentin Johnston. Justin Herbert, arguably a top 5 fantasy quarterback, now has a new weapon. Johnston will add a spark of energy in an aging receiving core. My model expects him to score 134 points which is right in front of an injury prone Cordarrelle Patterson. But, if Keenan Allen or Mike Williams pick up injuries like last year, I expect Johnston to become one of Herbert’s favorite targets.</p>
+<ol start="2" style="list-style-type: decimal">
+<li>Jordan Addison</li>
+</ol>
+<p>You know what’s better than one star wide receiver? two star wide receivers. Jordan Addison could be just that. Addison will play opposite from the best fantasy wide receiver last year, Justin Jefferson. And with the departure of Adam Theilen to Carolina, this duo has the potential to become another Tyreek Hill - Jaylen Waddle situation.</p>
+<p>My model has him scoring just 101 points, More than Keenan Allen, who missed half the year. But it doesn’t take my crappy fantasy point model to show you that Addison has the potential to score way more. Veteran quarterback Kirk Cousins will be saying, “You like that!” a lot more this season with Addison as an option.</p>
+<ol start="3" style="list-style-type: decimal">
+<li>Jaxon Smith-Njigba</li>
+</ol>
+<p>The first wide receiver taken in the draft went to Seattle. The Ohio State product looks to fit in an already quality receiving core in DK Metcalf and Tyler Lockett. Njigba will make this one of the best WR trios in the NFL. Geno Smith should be salivating over this very threatening triple threat. If it were me, I’m dropping my defense when they play the Seahawks because they are going to be scoring some points.</p>
+<p>My model has Smith-Njigba scoring 90 points. which puts him with guys like Courtland Sutton (DEN) and Diontae Johnson (PIT).</p>
+<ol start="4" style="list-style-type: decimal">
+<li>Jayden Reed</li>
+</ol>
+<p>Jayden Reed is the value pick at 50 overall by Green Bay. This is an interesting pick by my model, but there is some merit to it. With Aaron Rodgers leaving for New York as well as Allen Lazard and Randell Cobb the WR core at Green Bay is bleeding. And with a brand new quarterback, Green Bay fans aren’t exactly comfortable.</p>
+<p>It is now the Jordan Love era. Breakout star Christian Watson looks to be getting set to become the #1 receiver. And Romeo Doubs had a pretty disappointing year, Jayden Reed easily has the possibility to become the #2 target for Jordan Love. He’s not going to be sitting on the bench too much, He’ll get targets right away. That is Reeds upside. My model has Reed scoring 76 points. That puts him with guys like Isaiah McKenzie and Richie James Jr. But I think the Green Bay Packers this year are going to be a sink or swim team, So this number could be a lot more or way less. Proceed with caution.</p>
+<ol start="5" style="list-style-type: decimal">
+<li>Zay Flowers</li>
+</ol>
+<p>The Baltimore Ravens have an interesting offense. Heavily relying on Lamar Jackson’s insane ability to extend plays and make magic happen with his legs can get predictable. Especially when their aren’t very many deep ball threats Jackson can throw to. While Baltimore were able to find 10 wins this year, it felt like a down year for Ravens fans.</p>
+<p>Baltimore’s #1 Receiver, Rashod Bateman, was injured basically all year, which hurt the Ravens because that was basically their only deep ball threat. Except TE Mark Andrews, who also was injured for a while. Baltimore has shown that what they need is more targets for Jackson. The return of Odell Beckam Jr. after his unfortunate injury in Super Bowl LVI will certainly sell some more jersey’s and patch a gaping hole. But the Ravens need one piece to complete their offense.</p>
+<p>Zay Flowers is the answer. With 3056 total yards and 29 touchdowns for Boston College, he will immediately be able to challenge for playing time and hopefully get the Raven’s offense back on track. My model has him scoring 73 points which puts him with Jayden Reed and guys around him.</p>
+
+    </div>
+  </article>
+
+  
+
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/images/hugo-logo.png" alt="Img link to Hugo website" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+    
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/r.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
+
+
+
+    
+
+    
+  </body>
+</html>
+
